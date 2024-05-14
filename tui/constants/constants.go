@@ -16,8 +16,24 @@ var (
 	Pr         *profile.Profile
 	Repo       *repository.Repository
 	WindowSize tea.WindowSizeMsg
+	Path       []repository.RepoElement
 )
 
 var (
 	DocStyle = lipgloss.NewStyle().Margin(1)
+
+	StatusBarStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.AdaptiveColor{Light: "#343433", Dark: "#C1C6B2"}).
+			Background(lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#353533"})
+
+	TopBarStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.AdaptiveColor{Light: "#343433", Dark: "#C1C6B2"}).
+			Background(lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#353533"})
+
+	subtle    = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
+	MainStyle = lipgloss.NewStyle().
+			Border(lipgloss.RoundedBorder())
+	// MarginRight(2).
+	// Height(2).
+	// Width(2)
 )

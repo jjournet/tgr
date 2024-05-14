@@ -32,8 +32,8 @@ func (i item) FilterValue() string {
 }
 
 type ProfileModel struct {
-	top  string
-	list list.Model
+	top      string
+	repolist list.Model
 	// bottom   string
 	quitting bool
 }
@@ -70,21 +70,21 @@ func InitProfile() (tea.Model, tea.Cmd) {
 	for i, repo := range constants.Pr.Repos() {
 		items[i] = list.Item(item{Name: repo})
 	}
-	m := ProfileModel{list: list.New(items, list.NewDefaultDelegate(), 8, 8)}
+	m := ProfileModel{repolist: list.New(items, list.NewDefaultDelegate(), 8, 8)}
 	// m.list.Title = "Select a repository"
 	// m.top = listStyle.Render(lipgloss.JoinVertical(lipgloss.Left, listItemStyle(fmt.Sprintf("%-20s %-30s", "Org:", constants.Pr.Org))))
 	toprows := [][]string{
-		{"Org", constants.Pr.Org},
+		{"Org", constants.Pr.Profile},
 	}
 	m.top = titleStyle.Render(lgtable.New().Rows(toprows...).Render())
-	m.top = listStyle.Render(lipgloss.JoinVertical(lipgloss.Left, listItemStyle(fmt.Sprintf("%-20s %-30s", "Org:", constants.Pr.Org))))
+	m.top = listStyle.Render(lipgloss.JoinVertical(lipgloss.Left, listItemStyle(fmt.Sprintf("%-20s %-30s", "Org:", constants.Pr.Profile))))
 
-	m.list.SetShowStatusBar(false)
-	m.list.SetShowTitle(false)
+	m.repolist.SetShowStatusBar(false)
+	m.repolist.SetShowTitle(false)
 	if constants.WindowSize.Height != 0 {
 		headerHeight := lipgloss.Height(m.headerView())
 		footerHeight := lipgloss.Height(m.footerView())
-		m.list.SetSize(constants.WindowSize.Width-2, constants.WindowSize.Height-1-headerHeight-footerHeight-2)
+		m.repolist.SetSize(constants.WindowSize.Width-2, constants.WindowSize.Height-1-headerHeight-footerHeight-2)
 		mainStyle = mainStyle.Width(constants.WindowSize.Width - 2).Height(constants.WindowSize.Height - headerHeight - footerHeight - 2)
 	}
 	return m, func() tea.Msg { return errMsg{} }
@@ -100,7 +100,7 @@ func (m ProfileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		constants.WindowSize = msg
 		headerHeight := lipgloss.Height(m.headerView())
 		footerHeight := lipgloss.Height(m.footerView())
-		m.list.SetSize(constants.WindowSize.Width-2, constants.WindowSize.Height-1-headerHeight-footerHeight-2)
+		m.repolist.SetSize(constants.WindowSize.Width-2, constants.WindowSize.Height-1-headerHeight-footerHeight-2)
 		mainStyle = mainStyle.Width(constants.WindowSize.Width - 2).Height(constants.WindowSize.Height - headerHeight - footerHeight - 2)
 
 	case tea.KeyMsg:
@@ -110,14 +110,14 @@ func (m ProfileModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "enter":
 			// get the selected repo
-			repoName := m.list.SelectedItem().(item).Name
-			constants.Repo = repository.NewRepository(repoName, constants.Pr.Org, constants.Pr.Client)
+			repoName := m.repolist.SelectedItem().(item).Name
+			constants.Repo = repository.NewRepository(repoName, constants.Pr.Profile, constants.User.Client)
 			return InitRepo()
 		}
 	}
 
 	var cmd tea.Cmd
-	m.list, cmd = m.list.Update(msg)
+	m.repolist, cmd = m.repolist.Update(msg)
 	return m, cmd
 }
 
@@ -126,7 +126,7 @@ func (m ProfileModel) View() string {
 }
 
 func (m ProfileModel) headerView() string {
-	return titleStyle.Render(lipgloss.JoinVertical(lipgloss.Left, listItemStyle(fmt.Sprintf("%-20s %-30s", "Org:", constants.Pr.Org))))
+	return titleStyle.Render(lipgloss.JoinVertical(lipgloss.Left, listItemStyle(fmt.Sprintf("%-20s %-30s", "Org:", constants.Pr.Profile))))
 }
 
 func (m ProfileModel) footerView() string {
@@ -134,5 +134,5 @@ func (m ProfileModel) footerView() string {
 }
 
 func (m ProfileModel) mainView() string {
-	return mainStyle.Render(m.list.View())
+	return mainStyle.Render(m.repolist.View())
 }

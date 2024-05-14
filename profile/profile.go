@@ -4,15 +4,20 @@ package profile
 
 import (
 	"context"
+	"log"
 
 	"github.com/google/go-github/v61/github"
 )
 
+type Repo struct {
+	Name        string
+	Description string
+}
 type Profile struct {
-	owner  string
-	Org    string
-	repos  []string
-	Client *github.Client
+	owner    string
+	Profile  string
+	repos    []string
+	RepoList []Repo
 }
 
 func (p *Profile) Owner() string {
@@ -32,8 +37,17 @@ func NewProfile(owner string, org string, client *github.Client) *Profile {
 		panic(err)
 	}
 	repos := make([]string, len(repoList))
+	rList := make([]Repo, len(repoList))
+	final := 0
 	for i, repo := range repoList {
 		repos[i] = *repo.Name
+		if repo.Description == nil {
+			repo.Description = new(string)
+			*repo.Description = "N/A"
+		}
+		rList[i] = Repo{Name: *repo.Name, Description: *repo.Description}
+		final = i
 	}
-	return &Profile{owner: owner, Org: org, repos: repos, Client: client}
+	log.Printf("final repo count: %d", final)
+	return &Profile{owner: owner, Profile: org, repos: repos, RepoList: rList}
 }

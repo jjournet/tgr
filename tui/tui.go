@@ -46,7 +46,8 @@ func StartTea(ghuser *ghuser.GHUser) {
 		}()
 	}
 	constants.User = ghuser
-	m, _ := InitOrgs()
+	m, _ := InitProfileSelection()
+	// m, _ := InitOrgs()
 	constants.P = tea.NewProgram(m, tea.WithAltScreen())
 	if err := constants.P.Start(); err != nil {
 		fmt.Println("Error starting program:", err)

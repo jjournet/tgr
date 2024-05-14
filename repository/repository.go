@@ -7,6 +7,23 @@ import (
 	"github.com/google/go-github/v61/github"
 )
 
+const (
+	WORKFLOW = iota
+	RUN
+	ISSUE
+	PULL_REQUEST
+	BRANCH
+	COMMIT
+	ENVIRONMENT
+	VARIABLE
+)
+
+type RepoElement interface {
+	GetRepoName() string
+	GetOrgName() string
+	GetType() int
+}
+
 type Workflows struct {
 	Name  string
 	State string
