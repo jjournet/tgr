@@ -3,9 +3,10 @@ package tui
 import (
 	"fmt"
 
-	"github.com/charmbracelet/bubbles/table"
+	// "github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/evertras/bubble-table/table"
 	"github.com/jjournet/tgr/profile"
 	"github.com/jjournet/tgr/tui/constants"
 )
@@ -18,28 +19,39 @@ type profileSelection struct {
 func (m *profileSelection) resizeMain(w int, h int) {
 	headerHeight := lipgloss.Height(m.Top)
 	footerHeight := lipgloss.Height(m.Bottom)
-	m.OwnerList.SetHeight(h - headerHeight - footerHeight - 2 - 1)
-	constants.MainStyle = constants.MainStyle.Width(w - 2).Height(h - headerHeight - footerHeight - 2 - 5)
+	// m.OwnerList.SetHeight(h - headerHeight - footerHeight - 2 - 1)
+	constants.MainStyle = constants.MainStyle.Width(w - 2).Height(h - headerHeight - footerHeight - 2)
 }
 
 func InitProfileSelection() (tea.Model, tea.Cmd) {
 	m := profileSelection{}
 	m.InitTop("Profile Selection", constants.User.Login)
 	m.InitBottom()
+	// columns := []table.Column{
+	// 	{Title: "Profile", Width: 50},
+	// 	{Title: "Description", Width: 50},
+	// }
+
 	columns := []table.Column{
-		{Title: "Profile", Width: 50},
-		{Title: "Description", Width: 50},
+		table.NewColumn("profile", "Profile", 20),
+		table.NewColumn("desc", "Description", 20),
 	}
 	rows := []table.Row{}
 	for _, owner := range constants.User.Owners {
-		rows = append(rows, table.Row{owner.Login, owner.Description})
+		// rows = append(rows, table.NewRow{owner.Login, owner.Description})
+		rows = append(rows, table.NewRow(table.RowData{"profile": owner.Login, "desc": owner.Description}))
 	}
-	m.OwnerList = table.New(
-		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithFocused(true),
-	)
-
+	// m.OwnerList = table.New(
+	// 	table.WithColumns(columns),
+	// 	table.WithRows(rows),
+	// 	table.WithFocused(true),
+	// )
+	noBorder := table.Border{}
+	m.OwnerList = table.New(columns).WithRows(rows).
+		Focused(true).
+		Border(noBorder).
+		WithBaseStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#FF00FF")).Align(lipgloss.Left).Padding(0, 1)).
+		Filtered(true)
 	if constants.WindowSize.Height != 0 {
 		m.resizeMain(constants.WindowSize.Width, constants.WindowSize.Height)
 	}
@@ -60,7 +72,8 @@ func (m profileSelection) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q":
 			return m, tea.Quit
 		case "enter":
-			owner := m.OwnerList.SelectedRow()[0]
+			// owner := m.OwnerList.SelectedRow()[0]
+			owner := m.OwnerList.HighlightedRow().Data["profile"].(string)
 			constants.Pr = profile.NewProfile(constants.User.Login, owner, constants.User.Client)
 			return InitRepoSelection()
 		}

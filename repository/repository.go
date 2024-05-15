@@ -18,6 +18,29 @@ const (
 	VARIABLE
 )
 
+func ConvertRepoElementType(typeElt int) string {
+	switch typeElt {
+	case WORKFLOW:
+		return "Workflow"
+	case RUN:
+		return "Run"
+	case ISSUE:
+		return "Issue"
+	case PULL_REQUEST:
+		return "Pull Request"
+	case BRANCH:
+		return "Branch"
+	case COMMIT:
+		return "Commit"
+	case ENVIRONMENT:
+		return "Environment"
+	case VARIABLE:
+		return "Variable"
+	default:
+		return "Unknown"
+	}
+}
+
 type RepoElement interface {
 	GetRepoName() string
 	GetOrgName() string

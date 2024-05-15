@@ -30,9 +30,18 @@ var (
 			Foreground(lipgloss.AdaptiveColor{Light: "#343433", Dark: "#C1C6B2"}).
 			Background(lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#353533"})
 
-	subtle    = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
+	// subtle    = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
 	MainStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder())
+
+	LineStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.AdaptiveColor{Light: "#343433", Dark: "#FFFFFF"}).
+			PaddingLeft(2)
+
+	SelectedLineStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.AdaptiveColor{Light: "#343433", Dark: "#22EE82"}).
+				PaddingLeft(0)
+	// ColumnStyle = lipgloss.NewStyle().Align(lipgloss.Left).Foreground(lipgloss.Color("#EBB2DF"))
 	// MarginRight(2).
 	// Height(2).
 	// Width(2)
