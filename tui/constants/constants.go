@@ -34,15 +34,7 @@ var (
 	MainStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder())
 
-	LineStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.AdaptiveColor{Light: "#343433", Dark: "#FFFFFF"}).
-			PaddingLeft(2)
+	BaseTableStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("15")).Align(lipgloss.Left).Padding(0, 1)
 
-	SelectedLineStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.AdaptiveColor{Light: "#343433", Dark: "#22EE82"}).
-				PaddingLeft(0)
-	// ColumnStyle = lipgloss.NewStyle().Align(lipgloss.Left).Foreground(lipgloss.Color("#EBB2DF"))
-	// MarginRight(2).
-	// Height(2).
-	// Width(2)
+	HighlightedLineStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Background(lipgloss.Color("0")).Padding(0, 1)
 )

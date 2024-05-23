@@ -19,7 +19,6 @@ type profileSelection struct {
 func (m *profileSelection) resizeMain(w int, h int) {
 	headerHeight := lipgloss.Height(m.Top)
 	footerHeight := lipgloss.Height(m.Bottom)
-	// m.OwnerList.SetHeight(h - headerHeight - footerHeight - 2 - 1)
 	constants.MainStyle = constants.MainStyle.Width(w - 2).Height(h - headerHeight - footerHeight - 2)
 }
 
@@ -27,26 +26,16 @@ func InitProfileSelection() (tea.Model, tea.Cmd) {
 	m := profileSelection{}
 	m.InitTop("Profile Selection", constants.User.Login)
 	m.InitBottom()
-	// columns := []table.Column{
-	// 	{Title: "Profile", Width: 50},
-	// 	{Title: "Description", Width: 50},
-	// }
 
 	columns := []table.Column{
 		table.NewColumn("arrow", " ", 3),
-		table.NewColumn("profile", "Profile", 20),
+		table.NewColumn("profile", "Profile", 30),
 		table.NewColumn("desc", "Description", 20),
 	}
 	rows := []table.Row{}
 	for _, owner := range constants.User.Owners {
-		// rows = append(rows, table.NewRow{owner.Login, owner.Description})
 		rows = append(rows, table.NewRow(table.RowData{"profile": owner.Login, "desc": owner.Description}))
 	}
-	// m.OwnerList = table.New(
-	// 	table.WithColumns(columns),
-	// 	table.WithRows(rows),
-	// 	table.WithFocused(true),
-	// )
 	noBorder := table.Border{}
 	m.OwnerList = table.New(columns).WithRows(rows).
 		Focused(true).
@@ -74,7 +63,6 @@ func (m profileSelection) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q":
 			return m, tea.Quit
 		case "enter":
-			// owner := m.OwnerList.SelectedRow()[0]
 			owner := m.OwnerList.HighlightedRow().Data["profile"].(string)
 			constants.Pr = profile.NewProfile(constants.User.Login, owner, constants.User.Client)
 			return InitRepoSelection()
@@ -86,7 +74,6 @@ func (m profileSelection) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m profileSelection) View() string {
-	// loop over table m.OwnerList
 	for i, row := range m.OwnerList.GetVisibleRows() {
 		row.Data["arrow"] = ""
 		if i == m.OwnerList.GetHighlightedRowIndex() {
