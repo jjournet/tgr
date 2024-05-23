@@ -3,14 +3,16 @@ package tui
 import (
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jjournet/tgr/tui/constants"
 )
 
 // func BuildBottom()
 type commonElements struct {
-	Top    string
-	Bottom string
+	Top          string
+	Bottom       string
+	CommandInput textinput.Model
 }
 
 var statusStyle = lipgloss.NewStyle().

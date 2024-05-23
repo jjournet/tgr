@@ -34,7 +34,10 @@ var (
 	MainStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder())
 
-	BaseTableStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("15")).Align(lipgloss.Left).Padding(0, 1)
+	CommandStyle = lipgloss.NewStyle().Border(lipgloss.RoundedBorder())
 
-	HighlightedLineStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("10")).Background(lipgloss.Color("0")).Padding(0, 1)
+	BaseTableStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("15")).Align(lipgloss.Left).Padding(0, 1).
+			Foreground(lipgloss.Color("#77c2f9"))
+
+	HighlightedLineStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#000000")).Background(lipgloss.Color("#77c2f9")).Padding(0, 1)
 )

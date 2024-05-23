@@ -40,7 +40,7 @@ func InitProfileSelection() (tea.Model, tea.Cmd) {
 	m.OwnerList = table.New(columns).WithRows(rows).
 		Focused(true).
 		Border(noBorder).
-		WithBaseStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#FFFFFF")).Align(lipgloss.Left).Padding(0, 1)).
+		WithBaseStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#77c2f9")).Align(lipgloss.Left).Padding(0, 1)).
 		HighlightStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#22EE82")).Background(lipgloss.Color("#111111")).Padding(0, 1)).
 		Filtered(true)
 	if constants.WindowSize.Height != 0 {

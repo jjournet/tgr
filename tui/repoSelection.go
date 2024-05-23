@@ -3,6 +3,7 @@ package tui
 import (
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/evertras/bubble-table/table"
@@ -13,20 +14,27 @@ import (
 type repoSelection struct {
 	commonElements
 	// RepoList table.Model
-	RepoList table.Model
+	RepoList       table.Model
+	visibleCommand bool
 }
 
 func (m *repoSelection) resizeMain(w int, h int) {
 	headerHeight := lipgloss.Height(m.Top)
 	footerHeight := lipgloss.Height(m.Bottom)
-	constants.MainStyle = constants.MainStyle.Width(w - 2).Height(h - headerHeight - footerHeight - 2)
+	cmdHeight := 0
+	if m.visibleCommand {
+		cmdHeight = 3
+	}
+	constants.MainStyle = constants.MainStyle.Width(w - 2).Height(h - headerHeight - footerHeight - 2 - cmdHeight)
+	constants.CommandStyle = constants.CommandStyle.Width(w - 2).Height(1)
 }
 
 func InitRepoSelection() (tea.Model, tea.Cmd) {
 	m := repoSelection{}
 	m.InitTop("Repo Selection", constants.Pr.Profile)
 	m.InitBottom()
-
+	m.visibleCommand = false
+	m.CommandInput = textinput.New()
 	columns := []table.Column{
 		table.NewColumn("arrow", " ", 3),
 		table.NewColumn("repo", "Repository", 40).WithFiltered(true),
@@ -41,7 +49,8 @@ func InitRepoSelection() (tea.Model, tea.Cmd) {
 		Border(table.Border{}).
 		WithBaseStyle(constants.BaseTableStyle).
 		HighlightStyle(constants.HighlightedLineStyle).
-		Filtered(true)
+		Filtered(true).
+		WithFooterVisibility(false)
 
 	if constants.WindowSize.Height != 0 {
 		m.resizeMain(constants.WindowSize.Width, constants.WindowSize.Height)
@@ -54,6 +63,42 @@ func (m repoSelection) Init() tea.Cmd {
 }
 
 func (m repoSelection) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmds []tea.Cmd
+		cmd  tea.Cmd
+	)
+	if m.visibleCommand {
+		switch msg := msg.(type) {
+		case tea.WindowSizeMsg:
+			constants.WindowSize = msg
+			m.resizeMain(msg.Width, msg.Height)
+		case tea.KeyMsg:
+			switch msg.String() {
+			case "ctrl+c":
+				return m, tea.Quit
+			case "enter":
+				m.visibleCommand = false
+				m.resizeMain(constants.WindowSize.Width, constants.WindowSize.Height)
+				m.CommandInput.Blur()
+				cmd = tea.Cmd(func() tea.Msg { return tea.KeyMsg{Type: tea.KeyEsc} })
+				cmds = append(cmds, cmd)
+			case "esc":
+				m.visibleCommand = false
+				m.CommandInput.SetValue("")
+				m.resizeMain(constants.WindowSize.Width, constants.WindowSize.Height)
+				m.CommandInput.Blur()
+				m.RepoList = m.RepoList.WithFilterInputValue("")
+				cmd = tea.Cmd(func() tea.Msg { return tea.KeyMsg{Type: tea.KeyEsc} })
+				cmds = append(cmds, cmd)
+			default:
+				m.CommandInput, cmd = m.CommandInput.Update(msg)
+				cmds = append(cmds, cmd)
+				m.RepoList = m.RepoList.WithFilterInput(m.CommandInput)
+			}
+			return m, tea.Batch(cmds...)
+		}
+	}
+	// m.CommandInput, cmdCmd = m.CommandInput.Update(msg)
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		constants.WindowSize = msg
@@ -67,13 +112,21 @@ func (m repoSelection) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			repoName := m.RepoList.HighlightedRow().Data["repo"].(string)
 			constants.Repo = repository.NewRepository(repoName, constants.Pr.Profile, constants.User.Client)
 			return InitRepoView()
+		case "/":
+			m.visibleCommand = true
+			m.resizeMain(constants.WindowSize.Width, constants.WindowSize.Height)
+			m.CommandInput.Focus()
+			return m, nil
 		case "backspace":
 			return InitProfileSelection()
+		default:
+			var mainCmd tea.Cmd
+			m.RepoList, mainCmd = m.RepoList.Update(msg)
+			cmds = append(cmds, mainCmd)
 		}
 	}
-	var cmd tea.Cmd
-	m.RepoList, cmd = m.RepoList.Update(msg)
-	return m, cmd
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m repoSelection) View() string {
@@ -83,5 +136,10 @@ func (m repoSelection) View() string {
 			row.Data["arrow"] = "\uf0a9"
 		}
 	}
-	return fmt.Sprintf("%s\n%s\n%s", m.Top, constants.MainStyle.Render(m.RepoList.View()), m.Bottom)
+	if m.visibleCommand {
+		return fmt.Sprintf("%s\n%s\n%s\n%s", m.Top, constants.CommandStyle.BorderForeground(lipgloss.Color("#77c2f9")).Render(m.CommandInput.View()), constants.MainStyle.Render(m.RepoList.View()), m.Bottom)
+	} else {
+		return fmt.Sprintf("%s\n%s\n%s", m.Top, constants.MainStyle.BorderForeground(lipgloss.Color("#77c2f9")).Render(m.RepoList.View()), m.Bottom)
+	}
+
 }
