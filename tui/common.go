@@ -11,6 +11,7 @@ import (
 // func BuildBottom()
 type commonElements struct {
 	Top          string
+	TopFields    []string
 	Bottom       string
 	CommandInput textinput.Model
 }
@@ -38,4 +39,12 @@ func (c *commonElements) InitTop(topText ...string) {
 	}
 
 	c.Top = constants.TopBarStyle.Render(txt)
+}
+
+func (c *commonElements) RenderTopFields() string {
+	var aggregated string
+	for i := 0; i < len(c.TopFields); i++ {
+		aggregated += " " + c.TopFields[i] + " "
+	}
+	return constants.TopBarStyle.Render(aggregated)
 }

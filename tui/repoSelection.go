@@ -31,7 +31,8 @@ func (m *repoSelection) resizeMain(w int, h int) {
 
 func InitRepoSelection() (tea.Model, tea.Cmd) {
 	m := repoSelection{}
-	m.InitTop("Repo Selection", constants.Pr.Profile)
+	//m.InitTop("Repo Selection", constants.Pr.Profile)
+	m.TopFields = []string{"Repo Selection", constants.Pr.Profile, "(No Filter)"}
 	m.InitBottom()
 	m.visibleCommand = false
 	m.CommandInput = textinput.New()
@@ -88,11 +89,13 @@ func (m repoSelection) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.resizeMain(constants.WindowSize.Width, constants.WindowSize.Height)
 				m.CommandInput.Blur()
 				m.RepoList = m.RepoList.WithFilterInputValue("")
+				m.TopFields[2] = "(No Filter)"
 				cmd = tea.Cmd(func() tea.Msg { return tea.KeyMsg{Type: tea.KeyEsc} })
 				cmds = append(cmds, cmd)
 			default:
 				m.CommandInput, cmd = m.CommandInput.Update(msg)
 				cmds = append(cmds, cmd)
+				m.TopFields[2] = "Filter: " + m.CommandInput.Value()
 				m.RepoList = m.RepoList.WithFilterInput(m.CommandInput)
 			}
 			return m, tea.Batch(cmds...)
@@ -137,9 +140,9 @@ func (m repoSelection) View() string {
 		}
 	}
 	if m.visibleCommand {
-		return fmt.Sprintf("%s\n%s\n%s\n%s", m.Top, constants.CommandStyle.BorderForeground(lipgloss.Color("#77c2f9")).Render(m.CommandInput.View()), constants.MainStyle.Render(m.RepoList.View()), m.Bottom)
+		return fmt.Sprintf("%s\n%s\n%s\n%s", m.RenderTopFields(), constants.CommandStyle.BorderForeground(lipgloss.Color("#77c2f9")).Render(m.CommandInput.View()), constants.MainStyle.Render(m.RepoList.View()), m.Bottom)
 	} else {
-		return fmt.Sprintf("%s\n%s\n%s", m.Top, constants.MainStyle.BorderForeground(lipgloss.Color("#77c2f9")).Render(m.RepoList.View()), m.Bottom)
+		return fmt.Sprintf("%s\n%s\n%s", m.RenderTopFields(), constants.MainStyle.BorderForeground(lipgloss.Color("#77c2f9")).Render(m.RepoList.View()), m.Bottom)
 	}
 
 }
