@@ -2,7 +2,6 @@ package ghuser
 
 import (
 	"context"
-	"log"
 
 	"github.com/google/go-github/v61/github"
 )
@@ -41,7 +40,7 @@ func NewUser(client *github.Client) *GHUser {
 	for i, org := range orgs {
 		orgList[i] = *org.Login
 		owners[i] = Owner{Login: *org.Login, Description: *org.Description}
-		log.Printf("Org: %s, Description: %s\n", *org.Login, *org.Description)
+		// log.Printf("Org: %s, Description: %s\n", *org.Login, *org.Description)
 	}
 	orgList[len(orgs)] = login
 	owners[len(orgs)] = Owner{Login: login, Description: "Current User"}

@@ -13,6 +13,7 @@ type commonElements struct {
 	Top          string
 	TopFields    []string
 	Bottom       string
+	BottomFields []string
 	CommandInput textinput.Model
 }
 
@@ -47,4 +48,12 @@ func (c *commonElements) RenderTopFields() string {
 		aggregated += " " + c.TopFields[i] + " "
 	}
 	return constants.TopBarStyle.Render(aggregated)
+}
+
+func (c *commonElements) RenderBottomFields() string {
+	var aggregated string
+	for i := 0; i < len(c.BottomFields); i++ {
+		aggregated += " " + c.BottomFields[i] + " "
+	}
+	return constants.StatusBarStyle.Render(aggregated)
 }

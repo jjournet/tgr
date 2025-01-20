@@ -14,20 +14,33 @@ func GetSummaryListModel() table.Model {
 		table.NewColumn("type", "Repository info", 40).WithFiltered(true),
 		table.NewColumn("status", "Status", 80),
 	}
-	items := []table.Row{
-		table.NewRow(table.RowData{
-			"indicator": "",
-			"type":      rep.ConvertRepoElementType(rep.WORKFLOW),
-			"status":    fmt.Sprintf("Workflow: %d", len(constants.Repo.Workflows)),
-			"id":        rep.WORKFLOW,
-		}),
-		table.NewRow(table.RowData{
-			"indicator": "",
-			"type":      rep.ConvertRepoElementType(rep.RUN),
-			"status":    fmt.Sprintf("Actions: %d", len(constants.Repo.Runs)),
-			"id":        rep.RUN,
-		}),
-	}
+	var items []table.Row
+	// items := []table.Row{
+	// 	table.NewRow(table.RowData{
+	// 		"indicator": "",
+	// 		"type":      rep.ConvertRepoElementType(rep.WORKFLOW),
+	// 		"status":    fmt.Sprintf("Workflow: %d", len(constants.Repo.Workflows)),
+	// 		"id":        rep.WORKFLOW,
+	// 	}),
+	// 	table.NewRow(table.RowData{
+	// 		"indicator": "",
+	// 		"type":      rep.ConvertRepoElementType(rep.RUN),
+	// 		"status":    fmt.Sprintf("Actions: %d", len(constants.Repo.Runs)),
+	// 		"id":        rep.RUN,
+	// 	}),
+	// }
+	items = append(items, table.NewRow(table.RowData{
+		"indicator": "",
+		"type":      rep.ConvertRepoElementType(rep.WORKFLOW),
+		"status":    fmt.Sprintf("Workflow: %d", len(constants.Repo.Workflows)),
+		"id":        rep.WORKFLOW,
+	}))
+	items = append(items, table.NewRow(table.RowData{"indicator": "",
+		"type":   rep.ConvertRepoElementType(rep.RUN),
+		"status": fmt.Sprintf("Actions: %d", len(constants.Repo.Runs)),
+		"id":     rep.RUN,
+	}))
+
 	return table.New(columns).WithRows(items).
 		Focused(true).
 		Border(table.Border{}).

@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -25,15 +26,18 @@ func (m *repoSelection) resizeMain(w int, h int) {
 	if m.visibleCommand {
 		cmdHeight = 3
 	}
-	constants.MainStyle = constants.MainStyle.Width(w - 2).Height(h - headerHeight - footerHeight - 2 - cmdHeight)
+	log.Printf("Header: %d, Footer: %d, Command: %d\n", headerHeight, footerHeight, cmdHeight)
+	constants.MainStyle = constants.MainStyle.Width(w - 2).Height(h - headerHeight - footerHeight - 3 - cmdHeight)
+	m.RepoList = m.RepoList.WithPageSize(h - headerHeight - footerHeight - 3 - cmdHeight - 1)
 	constants.CommandStyle = constants.CommandStyle.Width(w - 2).Height(1)
 }
 
 func InitRepoSelection() (tea.Model, tea.Cmd) {
 	m := repoSelection{}
-	//m.InitTop("Repo Selection", constants.Pr.Profile)
+	m.InitTop("Repo Selection", constants.Pr.Profile)
 	m.TopFields = []string{"Repo Selection", constants.Pr.Profile, "(No Filter)"}
 	m.InitBottom()
+	m.BottomFields = []string{"(q) Quit", "(enter) Select", "(/) Filter", "(backspace) Back", "Page: ?"}
 	m.visibleCommand = false
 	m.CommandInput = textinput.New()
 	columns := []table.Column{
@@ -51,7 +55,8 @@ func InitRepoSelection() (tea.Model, tea.Cmd) {
 		WithBaseStyle(constants.BaseTableStyle).
 		HighlightStyle(constants.HighlightedLineStyle).
 		Filtered(true).
-		WithFooterVisibility(false)
+		WithFooterVisibility(false).
+		WithHighlightedRow(0)
 
 	if constants.WindowSize.Height != 0 {
 		m.resizeMain(constants.WindowSize.Width, constants.WindowSize.Height)
@@ -133,16 +138,18 @@ func (m repoSelection) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m repoSelection) View() string {
+	log.Printf("View Repo Selection\n")
 	for i, row := range m.RepoList.GetVisibleRows() {
 		row.Data["arrow"] = ""
 		if i == m.RepoList.GetHighlightedRowIndex() {
 			row.Data["arrow"] = "\uf0a9"
 		}
 	}
+	m.BottomFields[4] = fmt.Sprintf("Page: %d/%d", m.RepoList.CurrentPage(), m.RepoList.MaxPages())
 	if m.visibleCommand {
-		return fmt.Sprintf("%s\n%s\n%s\n%s", m.RenderTopFields(), constants.CommandStyle.BorderForeground(lipgloss.Color("#77c2f9")).Render(m.CommandInput.View()), constants.MainStyle.Render(m.RepoList.View()), m.Bottom)
+		return fmt.Sprintf("%s\n%s\n%s\n%s", m.RenderTopFields(), constants.CommandStyle.BorderForeground(lipgloss.Color("#77c2f9")).Render(m.CommandInput.View()), constants.MainStyle.Render(m.RepoList.View()), m.RenderBottomFields())
 	} else {
-		return fmt.Sprintf("%s\n%s\n%s", m.RenderTopFields(), constants.MainStyle.BorderForeground(lipgloss.Color("#77c2f9")).Render(m.RepoList.View()), m.Bottom)
+		return fmt.Sprintf("%s\n%s\n%s", m.RenderTopFields(), constants.MainStyle.BorderForeground(lipgloss.Color("#77c2f9")).Render(m.RepoList.View()), m.RenderBottomFields())
 	}
 
 }

@@ -2,7 +2,6 @@ package tui
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -34,17 +33,17 @@ import (
 // }
 
 func StartTea(ghuser *ghuser.GHUser) {
-	if f, err := tea.LogToFile("debug.log", "help"); err != nil {
-		fmt.Println("Couldn't open a file for logging:", err)
-		os.Exit(1)
-	} else {
-		defer func() {
-			err = f.Close()
-			if err != nil {
-				log.Fatal(err)
-			}
-		}()
-	}
+	// if f, err := tea.LogToFile("debug.log", "help"); err != nil {
+	// 	fmt.Println("Couldn't open a file for logging:", err)
+	// 	os.Exit(1)
+	// } else {
+	// 	defer func() {
+	// 		err = f.Close()
+	// 		if err != nil {
+	// 			log.Fatal(err)
+	// 		}
+	// 	}()
+	// }
 	constants.User = ghuser
 	m, _ := InitProfileSelection()
 	// m, _ := InitOrgs()

@@ -71,6 +71,15 @@ type Repository struct {
 	client       *github.Client
 }
 
+type GHRepoInfo struct {
+	RepoName    string
+	OrgName     string
+	Description string
+	HEADCommit  string
+	MainBranch  string
+	Pending     int
+}
+
 func NewRepository(repoName string, org string, client *github.Client) *Repository {
 	// repo, _, err := client.Repositories.Get(context.Background(), org, repoName)
 	// if err != nil {
@@ -106,4 +115,8 @@ func NewRepository(repoName string, org string, client *github.Client) *Reposito
 	}
 
 	return &Repository{Name: repoName, Organization: org, Workflows: wfsArr, Runs: runsArr, client: client}
+}
+
+func (r *Repository) GetRepoName() string {
+	return r.Name
 }

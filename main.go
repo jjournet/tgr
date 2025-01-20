@@ -33,6 +33,7 @@ func main() {
 	}
 	defer f.Close()
 	log.SetOutput(f)
+	log.Println("Starting tgr")
 	initGH()
 	// pr := profile.NewProfile("jjournet_HQY01", client)
 	user := ghuser.NewUser(client)

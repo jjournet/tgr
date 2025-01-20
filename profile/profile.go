@@ -32,9 +32,18 @@ func NewProfile(owner string, org string, client *github.Client) *Profile {
 	//list option to get all repositories
 	listOpt := &github.ListOptions{PerPage: 100}
 	opts := &github.RepositoryListByOrgOptions{ListOptions: *listOpt}
-	repoList, _, err := client.Repositories.ListByOrg(context.Background(), org, opts)
-	if err != nil {
-		panic(err)
+	// repoList, _, err := client.Repositories.ListByOrg(context.Background(), org, opts)
+	var repoList []*github.Repository
+	for {
+		currepo, resp, err := client.Repositories.ListByOrg(context.Background(), org, opts)
+		if err != nil {
+			panic(err)
+		}
+		repoList = append(repoList, currepo...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
 	}
 	repos := make([]string, len(repoList))
 	rList := make([]Repo, len(repoList))
