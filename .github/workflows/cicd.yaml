@@ -34,7 +34,8 @@ jobs:
         id: set_version
         uses: gittools/actions/gitversion/execute@v3.1.11
         with:
-          additionalArguments: '/overrideconfig mode="Mainline"'
+          overrideConfig: |
+            mode=Mainline
       - name: Display version
         run: echo "Version is ${{ steps.set_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
   compile:
