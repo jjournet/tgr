@@ -1,0 +1,70 @@
+name: cicd
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+  packages: write
+  id-token: write
+  # attestations: write
+
+jobs:
+  compute_version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install GitVersion
+        uses: gitversion/setup@v0
+        with:
+          versionSpec: '5.x'
+      - name: Set version
+        id: set_version
+        uses: gittools/actions/gitversion/execute@v0
+        with:
+          additionalArguments: '/overrideconfig mode="Mainline"'
+      - name: Display version
+        run: echo "Version is ${{ steps.set_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+  compile:
+    name: Build Go binaries
+    runs-on: ubuntu-latest
+    needs: compute_version
+    strategy:
+      matrix:
+        go-version: [1.24.x]
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: Get dependencies
+      run: go get .
+    - name: Build
+      run: go build -o tgr .
+    - name: Install ORAS CLI
+      uses: oras-project/setup-oras@v1.2.0
+    - name: docker login
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ inputs.ghuser }}
+        password: ${{ inputs.token }}
+    - name: Push to ghcr.io
+      shell: bash
+      run: |
+        oras push ghcr.io/jjournet/tgr-${{ matrix.goos }}-${{ matrix.goarch }}-${{ steps.compute_version.outputs.version }} tgr

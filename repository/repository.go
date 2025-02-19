@@ -2,9 +2,10 @@ package repository
 
 import (
 	"context"
+	"log"
 	"time"
 
-	"github.com/google/go-github/v61/github"
+	"github.com/google/go-github/v69/github"
 )
 
 const (
@@ -16,6 +17,8 @@ const (
 	COMMIT
 	ENVIRONMENT
 	VARIABLE
+	PROJECT
+	LANGUAGES
 )
 
 func ConvertRepoElementType(typeElt int) string {
@@ -36,6 +39,8 @@ func ConvertRepoElementType(typeElt int) string {
 		return "Environment"
 	case VARIABLE:
 		return "Variable"
+	case PROJECT:
+		return "Project"
 	default:
 		return "Unknown"
 	}
@@ -68,6 +73,7 @@ type Repository struct {
 	Organization string
 	Workflows    []Workflows
 	Runs         []Runs
+	Languages    map[string]int
 	client       *github.Client
 }
 
@@ -113,10 +119,32 @@ func NewRepository(repoName string, org string, client *github.Client) *Reposito
 			Date:       (*run.CreatedAt).Time,
 		}
 	}
-
-	return &Repository{Name: repoName, Organization: org, Workflows: wfsArr, Runs: runsArr, client: client}
+	// retrieve repository languages
+	languages, _, err := client.Repositories.ListLanguages(context.Background(), org, repoName)
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("Languages: %v", languages)
+	langs := make(map[string]int)
+	for lang, size := range languages {
+		langs[lang] = size
+	}
+	return &Repository{Name: repoName, Organization: org, Workflows: wfsArr, Runs: runsArr, Languages: langs, client: client}
 }
 
 func (r *Repository) GetRepoName() string {
 	return r.Name
+}
+
+func (r *Repository) GetWorkflows() []Workflows {
+	wfs, _, err := r.client.Actions.ListWorkflows(context.Background(), r.Organization, r.Name, nil)
+	if err != nil {
+		panic(err)
+	}
+	wfsArr := make([]Workflows, len(wfs.Workflows))
+	for i, wf := range wfs.Workflows {
+		// log.Printf("Workflow: %v", *wf.Name)
+		wfsArr[i] = Workflows{Name: *wf.Name, State: *wf.State, ID: *wf.ID}
+	}
+	return wfsArr
 }

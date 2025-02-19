@@ -3,7 +3,7 @@ package ghuser
 import (
 	"context"
 
-	"github.com/google/go-github/v61/github"
+	"github.com/google/go-github/v69/github"
 )
 
 type Owner struct {
@@ -32,9 +32,9 @@ func NewUser(client *github.Client) *GHUser {
 	if err != nil {
 		panic(err)
 	}
-	if len(orgs) == 0 {
-		panic("No organizations found")
-	}
+	// if len(orgs) == 0 {
+	// 	panic("No organizations found")
+	// }
 	orgList := make([]string, len(orgs)+1)
 	owners := make([]Owner, len(orgs)+1)
 	for i, org := range orgs {

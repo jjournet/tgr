@@ -6,7 +6,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/google/go-github/v61/github"
+	"github.com/google/go-github/v69/github"
 )
 
 type Repo struct {
@@ -31,11 +31,21 @@ func (p *Profile) Repos() []string {
 func NewProfile(owner string, org string, client *github.Client) *Profile {
 	//list option to get all repositories
 	listOpt := &github.ListOptions{PerPage: 100}
-	opts := &github.RepositoryListByOrgOptions{ListOptions: *listOpt}
+	optsUser := &github.RepositoryListByUserOptions{ListOptions: *listOpt}
+	optsOrg := &github.RepositoryListByOrgOptions{ListOptions: *listOpt}
 	// repoList, _, err := client.Repositories.ListByOrg(context.Background(), org, opts)
 	var repoList []*github.Repository
 	for {
-		currepo, resp, err := client.Repositories.ListByOrg(context.Background(), org, opts)
+		var currepo []*github.Repository
+		var resp *github.Response
+		var err error
+		log.Printf("org: %s\n", org)
+		log.Printf("owner: %s\n", owner)
+		if org == owner {
+			currepo, resp, err = client.Repositories.ListByUser(context.Background(), owner, optsUser)
+		} else {
+			currepo, resp, err = client.Repositories.ListByOrg(context.Background(), org, optsOrg)
+		}
 		if err != nil {
 			panic(err)
 		}
@@ -43,7 +53,11 @@ func NewProfile(owner string, org string, client *github.Client) *Profile {
 		if resp.NextPage == 0 {
 			break
 		}
-		opts.Page = resp.NextPage
+		if org == "" {
+			optsUser.Page = resp.NextPage
+		} else {
+			optsOrg.Page = resp.NextPage
+		}
 	}
 	repos := make([]string, len(repoList))
 	rList := make([]Repo, len(repoList))

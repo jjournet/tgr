@@ -9,7 +9,7 @@ import (
 	"github.com/jjournet/tgr/tui"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/google/go-github/v61/github"
+	"github.com/google/go-github/v69/github"
 )
 
 // var token string = ""
