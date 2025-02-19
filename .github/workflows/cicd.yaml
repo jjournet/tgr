@@ -68,4 +68,4 @@ jobs:
     - name: Push to ghcr.io
       shell: bash
       run: |
-        oras push ghcr.io/jjournet/tgr-${{ matrix.goos }}-${{ matrix.goarch }}-${{ steps.compute_version.outputs.version }} tgr
+        oras push ghcr.io/jjournet/tgr/tgr-${{ matrix.goos }}-${{ matrix.goarch }}-${{ needs.compute_versio.outputs.version }} tgr
