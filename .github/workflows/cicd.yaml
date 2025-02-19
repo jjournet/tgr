@@ -20,7 +20,7 @@ jobs:
   compute_version:
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.set_version.outputs.version }}
+      version: ${{ steps.set_version.outputs.SemVer }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,7 +37,7 @@ jobs:
           overrideConfig: |
             mode=Mainline
       - name: Display version
-        run: echo "Version is ${{ steps.set_version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        run: echo "Version is ${{ steps.set_version.outputs.SemVer }}" >> $GITHUB_STEP_SUMMARY
   compile:
     name: Build Go binaries
     runs-on: ubuntu-latest
