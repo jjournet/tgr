@@ -43,6 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: compute_version
     strategy:
+      max-parallel: 1
       matrix:
         go-version: [1.24.x]
         goos: [linux, darwin, windows]
@@ -68,4 +69,4 @@ jobs:
     - name: Push to ghcr.io
       shell: bash
       run: |
-        oras push ghcr.io/jjournet/tgr/tgr-${{ matrix.goos }}-${{ matrix.goarch }}-${{ needs.compute_versio.outputs.version }} tgr
+        oras push ghcr.io/jjournet/tgr/tgr-${{ matrix.goos }}-${{ matrix.goarch }}-${{ needs.compute_version.outputs.version }} tgr
