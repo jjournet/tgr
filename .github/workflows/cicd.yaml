@@ -27,12 +27,12 @@ jobs:
         with:
           fetch-depth: 0
       - name: Install GitVersion
-        uses: gitversion/setup@v0
+        uses: gittools/actions/gitversion/setup@v3.1.11
         with:
           versionSpec: '5.x'
       - name: Set version
         id: set_version
-        uses: gittools/actions/gitversion/execute@v0
+        uses: gittools/actions/gitversion/execute@v3.1.11
         with:
           additionalArguments: '/overrideconfig mode="Mainline"'
       - name: Display version
