@@ -77,4 +77,5 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         VERSION: ${{ needs.compute_version.outputs.version }}
       run: |
+        mv tgr tgr-${{ matrix.goos }}-${{ matrix.goarch }}
         gh release upload $VERSION tgr-${{ matrix.goos }}-${{ matrix.goarch }} --clobber
