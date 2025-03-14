@@ -38,6 +38,14 @@ jobs:
             mode=Mainline
       - name: Display version
         run: echo "Version is ${{ steps.set_version.outputs.SemVer }}" >> $GITHUB_STEP_SUMMARY
+      - name: Create release
+        if: github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.set_version.outputs.SemVer }}
+        run: |
+          echo "Creating release $VERSION" >> $GITHUB_STEP_SUMMARY
+          gh release create "$VERSION" -t "$VERSION" -n "TGR version $VERSION" -F $GITHUB_STEP_SUMMARY
   compile:
     name: Build Go binaries
     runs-on: ubuntu-latest
@@ -58,15 +66,15 @@ jobs:
       run: go get .
     - name: Build
       run: go build -o tgr .
-    - name: Install ORAS CLI
-      uses: oras-project/setup-oras@v1.2.0
-    - name: docker login
-      uses: docker/login-action@v3
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
       with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Push to ghcr.io
-      shell: bash
+        name: tgr-${{ matrix.goos }}-${{ matrix.goarch }}
+        path: tgr
+    - name: Attach artifact to release
+      if: github.ref == 'refs/heads/main'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VERSION: ${{ needs.compute_version.outputs.version }}
       run: |
-        oras push ghcr.io/jjournet/tgr/tgr-${{ matrix.goos }}-${{ matrix.goarch }}:${{ needs.compute_version.outputs.version }} tgr
+        gh release upload $VERSION tgr-${{ matrix.goos }}-${{ matrix.goarch }} --clobber
