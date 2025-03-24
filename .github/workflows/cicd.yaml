@@ -1,0 +1,88 @@
+name: cicd
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+inputs:
+  create_release:
+    description: 'Create a release'
+    required: false
+    default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+  id-token: write
+  # attestations: write
+
+jobs:
+  compute_version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_version.outputs.SemVer }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v3.1.11
+        with:
+          versionSpec: '5.x'
+      - name: Set version
+        id: set_version
+        uses: gittools/actions/gitversion/execute@v3.1.11
+        with:
+          overrideConfig: |
+            mode=Mainline
+      - name: Display version
+        run: echo "Version is ${{ steps.set_version.outputs.SemVer }}" >> $GITHUB_STEP_SUMMARY
+      - name: Create release
+        if: github.ref == 'refs/heads/main' && inputs.create_release == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.set_version.outputs.SemVer }}
+        run: |
+          echo "Creating release $VERSION" >> $GITHUB_STEP_SUMMARY
+          gh release create "$VERSION" -t "$VERSION" -n "TGR version $VERSION" -F $GITHUB_STEP_SUMMARY
+  compile:
+    name: Build Go binaries
+    runs-on: ubuntu-latest
+    needs: compute_version
+    strategy:
+      max-parallel: 1
+      matrix:
+        go-version: [1.24.x]
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: Get dependencies
+      run: go get .
+    - name: Build
+      run: go build -o tgr .
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: tgr-${{ matrix.goos }}-${{ matrix.goarch }}
+        path: tgr
+    - name: Attach artifact to release
+      if: github.ref == 'refs/heads/main' && inputs.create_release == 'true'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VERSION: ${{ needs.compute_version.outputs.version }}
+      run: |
+        mv tgr tgr-${{ matrix.goos }}-${{ matrix.goarch }}
+        gh release upload $VERSION tgr-${{ matrix.goos }}-${{ matrix.goarch }} --clobber
+# test
