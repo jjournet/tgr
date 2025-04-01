@@ -19,6 +19,7 @@ const (
 	VARIABLE
 	PROJECT
 	LANGUAGES
+	DESCRIPTION
 )
 
 func ConvertRepoElementType(typeElt int) string {
@@ -41,6 +42,8 @@ func ConvertRepoElementType(typeElt int) string {
 		return "Variable"
 	case PROJECT:
 		return "Project"
+	case DESCRIPTION:
+		return "Description"
 	default:
 		return "Unknown"
 	}
@@ -147,4 +150,16 @@ func (r *Repository) GetWorkflows() []Workflows {
 		wfsArr[i] = Workflows{Name: *wf.Name, State: *wf.State, ID: *wf.ID}
 	}
 	return wfsArr
+}
+
+func (r *Repository) GetClient() *github.Client {
+	return r.client
+}
+
+func (r *Repository) GetRepo() *github.Repository {
+	repo, _, err := r.client.Repositories.Get(context.Background(), r.Organization, r.Name)
+	if err != nil {
+		panic(err)
+	}
+	return repo
 }

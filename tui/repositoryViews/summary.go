@@ -1,6 +1,7 @@
 package repositoryviews
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/evertras/bubble-table/table"
@@ -14,6 +15,8 @@ func GetSummaryListModel() table.Model {
 		table.NewColumn("type", "Repository info", 40).WithFiltered(true),
 		table.NewColumn("value", "Value", 80),
 	}
+	repo := constants.Repo.GetRepo()
+
 	var items []table.Row
 	// Display Project
 	items = append(items, table.NewRow(table.RowData{
@@ -22,6 +25,14 @@ func GetSummaryListModel() table.Model {
 		"value":     constants.Repo.Name,
 		"id":        rep.PROJECT,
 	}))
+	// Display Description
+	items = append(items, table.NewRow(table.RowData{
+		"indicator": "",
+		"type":      rep.ConvertRepoElementType(rep.DESCRIPTION),
+		"value":     fmt.Sprintf("Description: %s", *repo.Description),
+		"id":        rep.DESCRIPTION,
+	}))
+	// Display Workflow
 	items = append(items, table.NewRow(table.RowData{
 		"indicator": "",
 		"type":      rep.ConvertRepoElementType(rep.WORKFLOW),
@@ -35,8 +46,12 @@ func GetSummaryListModel() table.Model {
 	}))
 	// append all languages in one string, with percentage in parenthesis
 	var langs string
-	for lang, percent := range constants.Repo.Languages {
-		langs += fmt.Sprintf("%s (%d), ", lang, percent)
+	// for lang, percent := range constants.Repo.Languages {
+	// 	langs += fmt.Sprintf("%s (%d), ", lang, percent)
+	// }
+	languages, _, _ := constants.Repo.GetClient().Repositories.ListLanguages(context.Background(), constants.Pr.Profile, constants.Repo.Name)
+	for lang := range languages {
+		langs += fmt.Sprintf("%s (%d) ", lang.Name, lang.Percentage)
 	}
 	items = append(items, table.NewRow(table.RowData{"indicator": "",
 		"type":  "Languages",
