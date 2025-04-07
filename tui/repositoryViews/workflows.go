@@ -1,4 +1,4 @@
-package tui
+package repositoryviews
 
 import (
 	"fmt"
@@ -7,11 +7,10 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/evertras/bubble-table/table"
 	"github.com/jjournet/tgr/tui/constants"
-	repositoryviews "github.com/jjournet/tgr/tui/repositoryViews"
 )
 
 type repoView struct {
-	commonElements
+	common.commonElements
 	EltList table.Model
 }
 

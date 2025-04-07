@@ -48,7 +48,7 @@ func InitRepo() (tea.Model, tea.Cmd) {
 		{Title: "WorkflowID", Width: 10},
 	}
 	rows := []table.Row{}
-	for _, w := range constants.Repo.Runs {
+	for _, w := range constants.Repo.GetRuns() {
 		log.Printf("Workflow: %v", w.Title)
 		rows = append(rows, table.Row{symbolMapping[w.Status], w.Title, fmt.Sprintf("%d", w.WorkflowID)})
 	}
