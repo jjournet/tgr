@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jjournet/tgr/profile"
 	"github.com/jjournet/tgr/repository"
+	"github.com/jjournet/tgr/workflow"
 
 	// "github.com/charmbracelet/bubbles/key"
 	"github.com/jjournet/tgr/ghuser"
@@ -15,6 +16,7 @@ var (
 	User       *ghuser.GHUser
 	Pr         *profile.Profile
 	Repo       *repository.Repository
+	Workflow   *workflow.Workflow
 	WindowSize tea.WindowSizeMsg
 	Path       []repository.RepoElement
 )
