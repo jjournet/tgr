@@ -5,6 +5,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jjournet/tgr/profile"
 	"github.com/jjournet/tgr/repository"
+	"github.com/jjournet/tgr/runs"
 	"github.com/jjournet/tgr/workflow"
 
 	// "github.com/charmbracelet/bubbles/key"
@@ -19,6 +20,7 @@ var (
 	Workflow   *workflow.Workflow
 	WindowSize tea.WindowSizeMsg
 	Path       []repository.RepoElement
+	Runs       []runs.Runs
 )
 
 var (

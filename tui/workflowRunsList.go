@@ -73,10 +73,30 @@ func (m workflowRunListView) View() string {
 
 func GetWorkflowRunListModel() table.Model {
 	columns := []table.Column{
-    table.NewColumn("arrow", " ", table.WithWidth(3)),
-    table.NewColumn("id", "ID", table.WithWidth(10)),
-    table.NewColumn("title", "Title", table.WithWidth(20)),
-    table.NewColumn("status", "Status", table.WithWidth(10)),
-    table.NewColumn("created_at", "Created At", table.WithWidth(20)),
-    
+		table.NewColumn("arrow", " ", 3),
+		table.NewColumn("id", "ID", 10),
+		table.NewColumn("title", "Title", 40),
+		table.NewColumn("status", "Status", 10),
+		table.NewColumn("created_at", "Created At", 20),
+		table.NewColumn("branch", "Branch", 20),
+	}
+	rows := []table.Row{}
+	for _, run := range constants.Runs {
+		rows = append(rows, table.Row{
+			Data: map[string]any{
+				"arrow":      "",
+				"id":         run.ID,
+				"title":      run.Title,
+				"status":     run.Status,
+				"created_at": run.CreatedAt,
+			},
+		})
+	}
+	noBorder := table.Border{}
+	return table.New(columns).WithRows(rows).
+		Focused(true).
+		Border(noBorder).
+		WithBaseStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#77c2f9")).Align(lipgloss.Left).Padding(0, 1)).
+		HighlightStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#22EE82")).Background(lipgloss.Color("#111111")).Padding(0, 1)).
+		Filtered(true)
 }
