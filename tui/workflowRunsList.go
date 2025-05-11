@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/evertras/bubble-table/table"
+	"github.com/jjournet/tgr/runs"
 	"github.com/jjournet/tgr/tui/constants"
 	"github.com/jjournet/tgr/types"
 )
@@ -21,9 +22,9 @@ func (m *workflowRunListView) resizeMain(w int, h int) {
 	constants.MainStyle = constants.MainStyle.Width(w - 2).Height(h - headerHeight - footerHeight - 2)
 }
 
-func InitWorkflowRunList() (tea.Model, tea.Cmd) {
+func InitWorkflowRunList(wkflwId int64) (tea.Model, tea.Cmd) {
 	m := workflowRunListView{}
-	m.InitTop("Workflow Run List", constants.Repo.GetRepoName())
+	m.InitTop(constants.Pr.Profile, constants.Repo.GetRepoName(), fmt.Sprintf("Workflow Run List for %d", wkflwId))
 	m.InitBottom()
 
 	m.EltList = GetWorkflowRunListModel()
@@ -48,7 +49,7 @@ func (m workflowRunListView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q":
 			return m, tea.Quit
 		case "backspace":
-			return InitRepoSelection()
+			return InitWorflowList()
 		case "enter":
 			// get the selected option
 			row := m.EltList.HighlightedRow()
@@ -58,6 +59,7 @@ func (m workflowRunListView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 	var cmd tea.Cmd
+	m.EltList, cmd = m.EltList.Update(msg)
 	return m, cmd
 }
 
@@ -74,29 +76,68 @@ func (m workflowRunListView) View() string {
 func GetWorkflowRunListModel() table.Model {
 	columns := []table.Column{
 		table.NewColumn("arrow", " ", 3),
-		table.NewColumn("id", "ID", 10),
-		table.NewColumn("title", "Title", 40),
-		table.NewColumn("status", "Status", 10),
-		table.NewColumn("created_at", "Created At", 20),
+		table.NewColumn("indicator", " ", 3),
+		table.NewColumn("title", "Title", 35),
+		table.NewColumn("status", "Status", 15),
+		table.NewColumn("conclusion", "Conclusion", 15),
+		table.NewColumn("created_at", "Created At", 24),
 		table.NewColumn("branch", "Branch", 20),
+		table.NewColumn("id", "ID", 12),
 	}
 	rows := []table.Row{}
+
 	for _, run := range constants.Runs {
-		rows = append(rows, table.Row{
-			Data: map[string]any{
-				"arrow":      "",
-				"id":         run.ID,
-				"title":      run.Title,
-				"status":     run.Status,
-				"created_at": run.CreatedAt,
-			},
-		})
+		rows = append(rows, makeRow(*run))
 	}
-	noBorder := table.Border{}
+
 	return table.New(columns).WithRows(rows).
 		Focused(true).
-		Border(noBorder).
-		WithBaseStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#77c2f9")).Align(lipgloss.Left).Padding(0, 1)).
-		HighlightStyle(lipgloss.NewStyle().Foreground(lipgloss.Color("#22EE82")).Background(lipgloss.Color("#111111")).Padding(0, 1)).
-		Filtered(true)
+		Border(table.Border{}).
+		WithBaseStyle(constants.BaseTableStyle).
+		HighlightStyle(constants.HighlightedLineStyle).
+		Filtered(true).
+		WithHighlightedRow(0).
+		WithFooterVisibility(false)
+
+}
+
+func makeRow(run runs.Run) table.Row {
+	indicator := "\uf128"
+	color := lipgloss.Color("#77c2f9")
+	if run.Status == "completed" && run.Conclusion == "success" {
+		indicator = "\uf058"
+		color = lipgloss.Color("#22EE82")
+	} else if run.Status == "in_progress" {
+		indicator = "\uef0c"
+		color = lipgloss.Color("#FFCC00")
+	} else if run.Status == "queued" {
+		indicator = "󰚭"
+		color = lipgloss.Color("#FFCC00")
+	} else if run.Status == "completed" && run.Conclusion == "failure" {
+		indicator = "\uea87"
+		color = lipgloss.Color("#FF0000")
+	}
+	// return table.Row{
+	// 	Data: map[string]any{
+	// 		"arrow":      "",
+	// 		"indicator":  indicator,
+	// 		"title":      run.Title,
+	// 		"status":     run.Status,
+	// 		"created_at": run.CreatedAt[0:19],
+	// 		"branch":     run.Branch,
+	// 		"id":         run.ID,
+	// 	},
+	// }
+
+	return table.NewRow(table.RowData{
+		"arrow":      "",
+		"indicator":  table.NewStyledCell(indicator, lipgloss.NewStyle().Foreground(lipgloss.Color(color))),
+		"title":      run.Title,
+		"status":     run.Status,
+		"conclusion": run.Conclusion,
+		"created_at": run.CreatedAt[0:19],
+		"branch":     run.Branch,
+		"id":         run.ID,
+	})
+	// return table.NewRow(table.RowData{"arrow": "",
 }

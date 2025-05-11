@@ -23,7 +23,7 @@ func (m *repoView) resizeMain(w int, h int) {
 
 func InitRepoView() (tea.Model, tea.Cmd) {
 	m := repoView{}
-	m.InitTop("Repository Summary", constants.Repo.GetRepoName())
+	m.InitTop(constants.Pr.Profile, constants.Repo.GetRepoName(), "Repository Summary")
 	m.InitBottom()
 
 	m.EltList = GetSummaryListModel()

@@ -6,6 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/evertras/bubble-table/table"
+	"github.com/jjournet/tgr/runs"
 	"github.com/jjournet/tgr/tui/constants"
 	"github.com/jjournet/tgr/types"
 )
@@ -22,8 +23,8 @@ func (m *repoWorkflowListView) resizeMain(w int, h int) {
 }
 
 func InitWorflowList() (tea.Model, tea.Cmd) {
-	m := repoView{}
-	m.InitTop("Workflow List", constants.Repo.GetRepoName())
+	m := repoWorkflowListView{}
+	m.InitTop(constants.Pr.Profile, constants.Repo.GetRepoName(), "Workflow List")
 	m.InitBottom()
 
 	m.EltList = GetWorkflowListModel()
@@ -52,8 +53,9 @@ func (m repoWorkflowListView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			// get the selected option
 			row := m.EltList.HighlightedRow()
-			if row.Data["id"] == types.WORKFLOW {
-				return InitWorflowList()
+			if row.Data["type"] == types.WORKFLOW {
+				constants.Runs = runs.GetRuns(constants.Pr.Profile, constants.Repo.GetRepoName(), row.Data["id"].(int64), constants.User.Client)
+				return InitWorkflowRunList(row.Data["id"].(int64))
 			}
 		}
 	}
@@ -77,10 +79,11 @@ func GetWorkflowListModel() table.Model {
 		table.NewColumn("workflow", "Workflow", 30),
 		table.NewColumn("state", "State", 100),
 		table.NewColumn("id", "ID", 10),
+		table.NewColumn("type", "Type", 10),
 	}
 	rows := []table.Row{}
 	for _, workflow := range constants.Repo.GetWorkflows() {
-		rows = append(rows, table.NewRow(table.RowData{"workflow": workflow.Name, "state": workflow.State, "id": types.WORKFLOW}))
+		rows = append(rows, table.NewRow(table.RowData{"workflow": workflow.Name, "state": workflow.State, "id": workflow.ID, "type": types.WORKFLOW}))
 	}
 	noBorder := table.Border{}
 	return table.New(columns).WithRows(rows).

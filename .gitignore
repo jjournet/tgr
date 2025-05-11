@@ -22,3 +22,5 @@ go.work
 
 *.log
 log.txt
+
+local*

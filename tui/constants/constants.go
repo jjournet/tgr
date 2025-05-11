@@ -20,7 +20,7 @@ var (
 	Workflow   *workflow.Workflow
 	WindowSize tea.WindowSizeMsg
 	Path       []repository.RepoElement
-	Runs       []runs.Runs
+	Runs       []*runs.Run
 )
 
 var (

@@ -35,7 +35,7 @@ func (m *repoSelection) resizeMain(w int, h int) {
 func InitRepoSelection() (tea.Model, tea.Cmd) {
 	m := repoSelection{}
 	m.InitTop("Repo Selection", constants.Pr.Profile)
-	m.TopFields = []string{"Repo Selection", constants.Pr.Profile, "(No Filter)"}
+	m.TopFields = []string{constants.Pr.Profile, "Repo Selection", "(No Filter)"}
 	m.InitBottom()
 	m.BottomFields = []string{"(q) Quit", "(enter) Select", "(/) Filter", "(backspace) Back", "Page: ?"}
 	m.visibleCommand = false
