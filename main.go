@@ -2,40 +2,41 @@ package main
 
 import (
 	"log"
-	"os/exec"
-	"strings"
-
-	"github.com/jjournet/tgr/ghuser"
-	"github.com/jjournet/tgr/tui"
+	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/google/go-github/v69/github"
+	"github.com/jjournet/tgr/github"
+	"github.com/jjournet/tgr/tui"
 )
 
-// var token string = ""
-
-var client *github.Client = nil
-
-func initGH() {
-	out, err := exec.Command("gh", "auth", "token").Output()
-	if err != nil {
-		log.Fatalf("Error logging in: %v", err)
-	}
-	token := strings.TrimSuffix(string(out), "\n")
-	client = github.NewClient(nil).WithAuthToken(token)
-
-}
-
 func main() {
+	// Setup logging
 	f, err := tea.LogToFile("log.txt", "debug")
 	if err != nil {
 		log.Fatalf("Error opening log file: %v", err)
 	}
 	defer f.Close()
 	log.SetOutput(f)
+
 	log.Println("Starting tgr")
-	initGH()
-	// pr := profile.NewProfile("jjournet_HQY01", client)
-	user := ghuser.NewUser(client)
-	tui.StartTea(user)
+
+	// Create centralized GitHub service
+	ghService, err := github.NewGitHubServiceFromCLI()
+	if err != nil {
+		log.Fatalf("Error creating GitHub service: %v", err)
+	}
+
+	// Create initial model
+	initialModel := tui.NewApp(ghService)
+
+	// Start the program
+	p := tea.NewProgram(
+		initialModel,
+		tea.WithAltScreen(),
+	)
+
+	if _, err := p.Run(); err != nil {
+		log.Printf("Error running program: %v", err)
+		os.Exit(1)
+	}
 }
