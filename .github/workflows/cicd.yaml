@@ -2,18 +2,18 @@ name: cicd
 
 on:
   workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create a release'
+        required: false
+        default: false
+        type: boolean
   push:
     branches:
       - main
   pull_request:
     branches:
       - main
-
-inputs:
-  create_release:
-    description: 'Create a release'
-    required: false
-    default: false
 
 permissions:
   contents: write
@@ -45,7 +45,7 @@ jobs:
       - name: Display version
         run: echo "Version is ${{ steps.set_version.outputs.SemVer }}" >> $GITHUB_STEP_SUMMARY
       - name: Create release
-        if: github.ref == 'refs/heads/main' && inputs.create_release == 'true'
+        if: github.ref == 'refs/heads/main' && inputs.create_release == true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.set_version.outputs.SemVer }}
@@ -78,7 +78,7 @@ jobs:
         name: tgr-${{ matrix.goos }}-${{ matrix.goarch }}
         path: tgr
     - name: Attach artifact to release
-      if: github.ref == 'refs/heads/main' && inputs.create_release == 'true'
+      if: github.ref == 'refs/heads/main' && inputs.create_release == true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         VERSION: ${{ needs.compute_version.outputs.version }}
