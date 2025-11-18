@@ -3,22 +3,13 @@ package constants
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/jjournet/tgr/profile"
-	"github.com/jjournet/tgr/repository"
-
-	// "github.com/charmbracelet/bubbles/key"
-	"github.com/jjournet/tgr/ghuser"
 )
 
-var (
-	P          *tea.Program
-	User       *ghuser.GHUser
-	Pr         *profile.Profile
-	Repo       *repository.Repository
-	WindowSize tea.WindowSizeMsg
-	Path       []repository.RepoElement
-)
+// WindowSize stores the current terminal window size
+// This is the only piece of "global" state we keep for UI purposes
+var WindowSize tea.WindowSizeMsg
 
+// Styling constants
 var (
 	DocStyle = lipgloss.NewStyle().Margin(1)
 
@@ -30,7 +21,6 @@ var (
 			Foreground(lipgloss.AdaptiveColor{Light: "#343433", Dark: "#C1C6B2"}).
 			Background(lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#353533"})
 
-	// subtle    = lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}
 	MainStyle = lipgloss.NewStyle().
 			Border(lipgloss.RoundedBorder())
 
