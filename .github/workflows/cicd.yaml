@@ -71,18 +71,21 @@ jobs:
     - name: Get dependencies
       run: go get .
     - name: Build
-      run: go build -o tgr .
+      env:
+        GOOS: ${{ matrix.goos }}
+        GOARCH: ${{ matrix.goarch }}
+      run: go build -o tgr${{ matrix.goos == 'windows' && '.exe' || '' }} .
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: tgr-${{ matrix.goos }}-${{ matrix.goarch }}
-        path: tgr
+        path: tgr${{ matrix.goos == 'windows' && '.exe' || '' }}
     - name: Attach artifact to release
       if: github.ref == 'refs/heads/main' && inputs.create_release == true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         VERSION: ${{ needs.compute_version.outputs.version }}
       run: |
-        mv tgr tgr-${{ matrix.goos }}-${{ matrix.goarch }}
-        gh release upload $VERSION tgr-${{ matrix.goos }}-${{ matrix.goarch }} --clobber
+        mv tgr${{ matrix.goos == 'windows' && '.exe' || '' }} tgr-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
+        gh release upload $VERSION tgr-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }} --clobber
 # test

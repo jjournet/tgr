@@ -1,0 +1,27 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tigerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF9900;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFCC00;stop-opacity:1" />
+    </linearGradient>
+    <pattern id="stripes" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect x="0" y="0" width="20" height="40" fill="#0d1117" opacity="0.1"/>
+    </pattern>
+  </defs>
+
+  <!-- Background Circle/Hexagon -->
+  <rect width="512" height="512" rx="100" fill="#0d1117"/>
+  
+  <!-- Main Text -->
+  <text x="60%" y="50%" font-family="Courier New, monospace" font-weight="bold" font-size="200" text-anchor="middle" dominant-baseline="middle" fill="#c9d1d9">
+    tgr
+  </text>
+  
+  <!-- Tiger Eye / Dot -->
+  <circle cx="420" cy="180" r="15" fill="#FF9900"/>
+  
+  <!-- Scratch Marks (The "Tiger" element) -->
+  <path d="M80 100 Q 120 256 80 412" stroke="#FF9900" stroke-width="20" fill="none" stroke-linecap="round" opacity="0.8"/>
+  <path d="M40 150 Q 80 256 40 362" stroke="#FF9900" stroke-width="15" fill="none" stroke-linecap="round" opacity="0.6"/>
+  
+</svg>
