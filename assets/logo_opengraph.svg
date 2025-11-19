@@ -1,0 +1,39 @@
+<svg width="1280" height="640" viewBox="0 0 1280 640" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#161b22;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d1117;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="640" fill="url(#bgGradient)"/>
+  
+  <!-- Decorative Terminal Header -->
+  <rect width="1280" height="40" fill="#21262d"/>
+  <circle cx="30" cy="20" r="6" fill="#ff5f56"/>
+  <circle cx="55" cy="20" r="6" fill="#ffbd2e"/>
+  <circle cx="80" cy="20" r="6" fill="#27c93f"/>
+  
+  <!-- Logo Section (Left) -->
+  <g transform="translate(50, 120)">
+    <!-- Imported from logo.svg (simplified) -->
+    <text x="100" y="200" font-family="Courier New, monospace" font-weight="bold" font-size="200" fill="#c9d1d9">tgr</text>
+    
+    <!-- Scratch Marks -->
+    <path d="M30 50 Q 70 200 30 350" stroke="#FF9900" stroke-width="25" fill="none" stroke-linecap="round" opacity="0.9"/>
+    <path d="M-10 100 Q 30 200 -10 300" stroke="#FF9900" stroke-width="15" fill="none" stroke-linecap="round" opacity="0.7"/>
+  </g>
+  
+  <!-- Text Section (Right) -->
+  <g transform="translate(540, 240)">
+    <text x="0" y="0" font-family="sans-serif" font-weight="bold" font-size="70" fill="#c9d1d9">TUI for</text>
+    <text x="0" y="90" font-family="sans-serif" font-weight="bold" font-size="70" fill="#c9d1d9">GitHub Repos</text>
+    
+    <text x="0" y="180" font-family="monospace" font-size="26" fill="#8b949e">$ go install github.com/jjournet/tgr@latest</text>
+  </g>
+  
+  <!-- Bottom Bar -->
+  <rect y="620" width="1280" height="20" fill="#FF9900"/>
+
+</svg>
