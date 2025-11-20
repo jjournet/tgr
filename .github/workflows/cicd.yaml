@@ -44,6 +44,13 @@ jobs:
             mode=Mainline
       - name: Display version
         run: echo "Version is ${{ steps.set_version.outputs.SemVer }}" >> $GITHUB_STEP_SUMMARY
+      - name: Tag repository
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag ${{ steps.set_version.outputs.SemVer }}
+          git push origin ${{ steps.set_version.outputs.SemVer }}
       - name: Create release
         if: github.ref == 'refs/heads/main' && inputs.create_release == true
         env:
