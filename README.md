@@ -8,7 +8,7 @@ This software is still in its early/alpha stage, changes can happen, and everyth
 
 ## Overview
 
-![Overview](assets/overview.png)
+![Overview](assets/overview_small.png)
 
 `tgr` is a powerful terminal user interface (TUI) for GitHub, designed to streamline your workflow without leaving the command line.
 
@@ -22,7 +22,7 @@ This software is still in its early/alpha stage, changes can happen, and everyth
 
 ## Support
 
-![Support](assets/support.png)
+![Support](assets/support_small.png)
 
 We value your feedback and want to help you succeed with `tgr`.
 
@@ -31,7 +31,7 @@ We value your feedback and want to help you succeed with `tgr`.
 
 ## Contribution
 
-![Contribution](assets/contribution.png)
+![Contribution](assets/contribution_small.png)
 
 We welcome contributions from the community! To contribute to `tgr`:
 
