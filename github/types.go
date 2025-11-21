@@ -28,6 +28,7 @@ type WorkflowInfo struct {
 	ID    int64
 	Name  string
 	State string
+	Path  string
 }
 
 // RunInfo represents a workflow run
@@ -66,6 +67,27 @@ type WorkflowDispatchInputs struct {
 	Inputs map[string]interface{}
 }
 
+// StepInfo represents a step in a workflow job
+type StepInfo struct {
+	Name        string
+	Status      string
+	Conclusion  string
+	Number      int
+	StartedAt   time.Time
+	CompletedAt time.Time
+}
+
+// JobInfo represents a job in a workflow run
+type JobInfo struct {
+	ID          int64
+	Name        string
+	Status      string
+	Conclusion  string
+	StartedAt   time.Time
+	CompletedAt time.Time
+	Steps       []StepInfo
+}
+
 // IssueInfo represents a GitHub issue
 type IssueInfo struct {
 	Number    int
@@ -77,4 +99,14 @@ type IssueInfo struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Body      string
+}
+
+// WorkflowInputDefinition represents a single input parameter for a workflow
+type WorkflowInputDefinition struct {
+	Name        string
+	Description string
+	Required    bool
+	Default     string
+	Type        string
+	Options     []string
 }

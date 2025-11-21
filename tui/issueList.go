@@ -177,10 +177,11 @@ func makeIssueRow(issue github.IssueInfo) table.Row {
 	indicator := "\uf128"
 	color := lipgloss.Color("#77c2f9")
 
-	if issue.State == "open" {
+	switch issue.State {
+	case "open":
 		indicator = "\uf468"
 		color = lipgloss.Color("#22EE82")
-	} else if issue.State == "closed" {
+	case "closed":
 		indicator = "\uf46a"
 		color = lipgloss.Color("#b19cd9")
 	}

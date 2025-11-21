@@ -111,7 +111,8 @@ func (m *repoWorkflowListView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			row := m.EltList.HighlightedRow()
 			if row.Data["type"] == types.WORKFLOW {
 				workflowID := row.Data["id"].(int64)
-				return NewWorkflowInputForm(m.ghService, m.owner, m.repoName, workflowID, m), nil
+				workflowPath := row.Data["path"].(string)
+				return NewWorkflowInputForm(m.ghService, m.owner, m.repoName, workflowID, workflowPath, m)
 			}
 		}
 	}
@@ -165,6 +166,7 @@ func (m *repoWorkflowListView) buildWorkflowListModel() table.Model {
 			"state":    workflow.State,
 			"id":       workflow.ID,
 			"type":     types.WORKFLOW,
+			"path":     workflow.Path,
 		}))
 	}
 

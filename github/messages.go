@@ -54,6 +54,13 @@ type WorkflowTriggeredMsg struct {
 	Err     error
 }
 
+// RunJobsLoadedMsg is sent when workflow run jobs are loaded
+type RunJobsLoadedMsg struct {
+	RunID int64
+	Jobs  []JobInfo
+	Err   error
+}
+
 // IssuesLoadedMsg is sent when issues are loaded
 type IssuesLoadedMsg struct {
 	Issues []IssueInfo
@@ -63,5 +70,17 @@ type IssuesLoadedMsg struct {
 // IssueDetailLoadedMsg is sent when a single issue detail is loaded
 type IssueDetailLoadedMsg struct {
 	Issue *IssueInfo
+	Err   error
+}
+
+// WorkflowInputsLoadedMsg is sent when workflow inputs are loaded
+type WorkflowInputsLoadedMsg struct {
+	Inputs []WorkflowInputDefinition
+	Err    error
+}
+
+// LatestRunFoundMsg is sent when the latest run is found
+type LatestRunFoundMsg struct {
+	RunID int64
 	Err   error
 }

@@ -1,10 +1,13 @@
 package github
 
 import (
+	"fmt"
 	"log"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	gh "github.com/google/go-github/v69/github"
+	"gopkg.in/yaml.v3"
 )
 
 // LoadUserCmd returns a command that loads the current user's information
@@ -164,6 +167,7 @@ func (s *GitHubService) LoadWorkflowsCmd(owner, repoName string) tea.Cmd {
 				ID:    wf.GetID(),
 				Name:  wf.GetName(),
 				State: wf.GetState(),
+				Path:  wf.GetPath(),
 			}
 		}
 
@@ -347,6 +351,58 @@ func (s *GitHubService) LoadRunDetailCmd(owner, repoName string, runID int64) te
 	}
 }
 
+// LoadRunJobsCmd returns a command that loads jobs for a workflow run
+func (s *GitHubService) LoadRunJobsCmd(owner, repoName string, runID int64) tea.Cmd {
+	return func() tea.Msg {
+		log.Println("[LoadRunJobsCmd] Starting to load jobs for run ID:", runID)
+
+		jobs, _, err := s.client.Actions.ListWorkflowJobs(
+			s.Context(),
+			owner,
+			repoName,
+			runID,
+			nil,
+		)
+		if err != nil {
+			log.Println("[LoadRunJobsCmd] Error loading jobs:", err)
+			return RunJobsLoadedMsg{Err: err}
+		}
+
+		log.Println("[LoadRunJobsCmd] Successfully loaded", len(jobs.Jobs), "jobs")
+
+		jobInfos := make([]JobInfo, len(jobs.Jobs))
+		for i, job := range jobs.Jobs {
+			steps := make([]StepInfo, len(job.Steps))
+			for j, step := range job.Steps {
+				steps[j] = StepInfo{
+					Name:        step.GetName(),
+					Status:      step.GetStatus(),
+					Conclusion:  step.GetConclusion(),
+					Number:      int(step.GetNumber()),
+					StartedAt:   step.GetStartedAt().Time,
+					CompletedAt: step.GetCompletedAt().Time,
+				}
+			}
+
+			jobInfos[i] = JobInfo{
+				ID:          job.GetID(),
+				Name:        job.GetName(),
+				Status:      job.GetStatus(),
+				Conclusion:  job.GetConclusion(),
+				StartedAt:   job.GetStartedAt().Time,
+				CompletedAt: job.GetCompletedAt().Time,
+				Steps:       steps,
+			}
+		}
+
+		return RunJobsLoadedMsg{
+			RunID: runID,
+			Jobs:  jobInfos,
+			Err:   nil,
+		}
+	}
+}
+
 // TriggerWorkflowCmd returns a command that triggers a workflow dispatch event
 func (s *GitHubService) TriggerWorkflowCmd(owner, repoName string, workflowID int64, ref string, inputs map[string]interface{}) tea.Cmd {
 	return func() tea.Msg {
@@ -372,5 +428,101 @@ func (s *GitHubService) TriggerWorkflowCmd(owner, repoName string, workflowID in
 
 		log.Println("[TriggerWorkflowCmd] Successfully triggered workflow")
 		return WorkflowTriggeredMsg{Success: true, Err: nil}
+	}
+}
+
+// LoadWorkflowInputsCmd loads the inputs for a workflow
+func (s *GitHubService) LoadWorkflowInputsCmd(owner, repoName string, workflowPath string) tea.Cmd {
+	return func() tea.Msg {
+		log.Printf("[LoadWorkflowInputsCmd] Loading inputs for %s", workflowPath)
+
+		// Get file content
+		fileContent, _, _, err := s.client.Repositories.GetContents(
+			s.Context(),
+			owner,
+			repoName,
+			workflowPath,
+			nil,
+		)
+		if err != nil {
+			log.Printf("[LoadWorkflowInputsCmd] Error fetching file content: %v", err)
+			return WorkflowInputsLoadedMsg{Err: err}
+		}
+
+		content, err := fileContent.GetContent()
+		if err != nil {
+			log.Printf("[LoadWorkflowInputsCmd] Error decoding file content: %v", err)
+			return WorkflowInputsLoadedMsg{Err: err}
+		}
+
+		// Parse YAML
+		var wf struct {
+			On struct {
+				WorkflowDispatch struct {
+					Inputs map[string]struct {
+						Description string      `yaml:"description"`
+						Required    bool        `yaml:"required"`
+						Default     interface{} `yaml:"default"` // Default can be string or boolean
+						Type        string      `yaml:"type"`
+						Options     []string    `yaml:"options"`
+					} `yaml:"inputs"`
+				} `yaml:"workflow_dispatch"`
+			} `yaml:"on"`
+		}
+
+		if err := yaml.Unmarshal([]byte(content), &wf); err != nil {
+			// If unmarshal fails, it might be because 'on' is not a map.
+			// In that case, there are no inputs for workflow_dispatch (or it's not enabled).
+			log.Printf("[LoadWorkflowInputsCmd] YAML unmarshal failed (likely no inputs): %v", err)
+			return WorkflowInputsLoadedMsg{Inputs: []WorkflowInputDefinition{}, Err: nil}
+		}
+
+		var inputs []WorkflowInputDefinition
+		for name, input := range wf.On.WorkflowDispatch.Inputs {
+			defVal := ""
+			if input.Default != nil {
+				defVal = fmt.Sprintf("%v", input.Default)
+			}
+
+			inputs = append(inputs, WorkflowInputDefinition{
+				Name:        name,
+				Description: input.Description,
+				Required:    input.Required,
+				Default:     defVal,
+				Type:        input.Type,
+				Options:     input.Options,
+			})
+		}
+
+		return WorkflowInputsLoadedMsg{Inputs: inputs, Err: nil}
+	}
+}
+
+// FindLatestRunCmd finds the latest run for a workflow
+func (s *GitHubService) FindLatestRunCmd(owner, repoName string, workflowID int64) tea.Cmd {
+	return func() tea.Msg {
+		// Wait a bit to allow GitHub to create the run
+		time.Sleep(2 * time.Second)
+
+		runs, _, err := s.client.Actions.ListWorkflowRunsByID(
+			s.Context(),
+			owner,
+			repoName,
+			workflowID,
+			&gh.ListWorkflowRunsOptions{ListOptions: gh.ListOptions{PerPage: 1}},
+		)
+		if err != nil {
+			return LatestRunFoundMsg{Err: err}
+		}
+
+		if len(runs.WorkflowRuns) == 0 {
+			return LatestRunFoundMsg{Err: fmt.Errorf("no runs found")}
+		}
+
+		run := runs.WorkflowRuns[0]
+		return LatestRunFoundMsg{
+			RunID: run.GetID(),
+			Err:   nil,
+		}
 	}
 }
