@@ -26,6 +26,10 @@ permissions:
 jobs:
   compute_version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      security-events: write
+      packages: write
     outputs:
       version: ${{ steps.set_version.outputs.SemVer }}
     steps:
@@ -71,6 +75,10 @@ jobs:
   compile:
     name: Build Go binaries
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      packages: write
     needs: compute_version
     strategy:
       max-parallel: 1
