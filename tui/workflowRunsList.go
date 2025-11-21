@@ -49,7 +49,7 @@ func NewWorkflowRunList(ghService *github.GitHubService, owner, repoName string,
 	m.InitTop(owner, repoName, fmt.Sprintf("Loading runs for workflow %d...", workflowID))
 	m.TopFields = []string{owner, repoName, fmt.Sprintf("Workflow Run List for %d", workflowID)}
 	m.InitBottom()
-	m.BottomFields = []string{"(q) Quit", "(enter) Select", "(backspace) Back"}
+	m.BottomFields = []string{"(q) Quit", "(enter) Select", "(w) Watch", "(backspace) Back"}
 
 	// Load workflow runs asynchronously
 	return m, ghService.LoadWorkflowRunsCmd(owner, repoName, workflowID)
@@ -105,6 +105,11 @@ func (m *workflowRunListView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			row := m.EltList.HighlightedRow()
 			runID := row.Data["id"].(int64)
 			return NewWorkflowRunDetail(m.ghService, m.owner, m.repoName, m.workflowID, runID)
+		case "w":
+			// Get the selected run
+			row := m.EltList.HighlightedRow()
+			runID := row.Data["id"].(int64)
+			return NewWorkflowRunWatch(m.ghService, m.owner, m.repoName, m.workflowID, runID)
 		}
 	}
 

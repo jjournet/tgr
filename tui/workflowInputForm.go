@@ -23,9 +23,10 @@ type workflowInputFormView struct {
 	ghService *github.GitHubService
 
 	// Context
-	owner      string
-	repoName   string
-	workflowID int64
+	owner        string
+	repoName     string
+	workflowID   int64
+	workflowPath string
 
 	// State
 	branch       string
@@ -33,6 +34,7 @@ type workflowInputFormView struct {
 	inputs       []inputField
 	focusedIndex int
 	triggering   bool
+	loading      bool
 	err          error
 	success      bool
 
@@ -41,28 +43,46 @@ type workflowInputFormView struct {
 }
 
 // NewWorkflowInputForm creates a new workflow input form as an overlay
-func NewWorkflowInputForm(ghService *github.GitHubService, owner, repoName string, workflowID int64, parentView tea.Model) tea.Model {
+func NewWorkflowInputForm(ghService *github.GitHubService, owner, repoName string, workflowID int64, workflowPath string, parentView tea.Model) (tea.Model, tea.Cmd) {
 	m := &workflowInputFormView{
 		ghService:    ghService,
 		owner:        owner,
 		repoName:     repoName,
 		workflowID:   workflowID,
+		workflowPath: workflowPath,
 		branchInput:  "main",
 		parentView:   parentView,
 		focusedIndex: 0,
+		loading:      true,
 	}
 
-	// For now, we'll start with just branch input
-	// In a more complete implementation, we'd fetch the workflow file to parse inputs
-	return m
+	return m, m.ghService.LoadWorkflowInputsCmd(m.owner, m.repoName, m.workflowPath)
 }
 
 func (m *workflowInputFormView) Init() tea.Cmd {
-	return nil
+	return m.ghService.LoadWorkflowInputsCmd(m.owner, m.repoName, m.workflowPath)
 }
 
 func (m *workflowInputFormView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+
+	case github.WorkflowInputsLoadedMsg:
+		m.loading = false
+		if msg.Err != nil {
+			// If error loading inputs, just show branch input (assume no inputs or error)
+			// We don't want to block triggering just because we couldn't parse inputs
+			return m, nil
+		}
+
+		for _, input := range msg.Inputs {
+			m.inputs = append(m.inputs, inputField{
+				name:        input.Name,
+				value:       input.Default,
+				description: input.Description,
+				required:    input.Required,
+			})
+		}
+		return m, nil
 
 	case github.WorkflowTriggeredMsg:
 		m.triggering = false
@@ -71,7 +91,17 @@ func (m *workflowInputFormView) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		m.success = true
-		return m, nil
+		// Start looking for the new run
+		return m, m.ghService.FindLatestRunCmd(m.owner, m.repoName, m.workflowID)
+
+	case github.LatestRunFoundMsg:
+		if msg.Err != nil {
+			// If we couldn't find the run, just stay on success screen
+			m.err = fmt.Errorf("triggered successfully but couldn't find run: %v", msg.Err)
+			return m, nil
+		}
+		// Switch to watch view
+		return NewWorkflowRunWatch(m.ghService, m.owner, m.repoName, m.workflowID, msg.RunID)
 
 	case tea.KeyMsg:
 		// If success or error, escape returns to parent
@@ -178,6 +208,10 @@ func (m *workflowInputFormView) View() string {
 		popup.WriteString(titleStyle.Render("Trigger Workflow"))
 		popup.WriteString("\n\n")
 		popup.WriteString("Triggering workflow...")
+	} else if m.loading {
+		popup.WriteString(titleStyle.Render("Trigger Workflow"))
+		popup.WriteString("\n\n")
+		popup.WriteString("Loading workflow inputs...")
 	} else {
 		popup.WriteString(titleStyle.Render("Trigger Workflow"))
 		popup.WriteString("\n\n")
