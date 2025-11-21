@@ -20,6 +20,7 @@ permissions:
   pull-requests: write
   packages: write
   id-token: write
+  security-events: read
   # attestations: write
 
 jobs:
