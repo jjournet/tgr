@@ -67,12 +67,16 @@ func (s *GitHubService) LoadReposCmd(owner string, isUser bool) tea.Cmd {
 		listOpt := &gh.ListOptions{PerPage: 100}
 
 		for {
+			slog.Debug("LoadReposCmd: Fetching page", "page", listOpt.Page)
 			var repos []*gh.Repository
 			var resp *gh.Response
 			var err error
 
 			if isUser {
-				opts := &gh.RepositoryListByUserOptions{ListOptions: *listOpt}
+				opts := &gh.RepositoryListByUserOptions{
+					Type:        "owner",
+					ListOptions: *listOpt,
+				}
 				repos, resp, err = s.client.Repositories.ListByUser(
 					s.Context(),
 					owner,
@@ -88,9 +92,11 @@ func (s *GitHubService) LoadReposCmd(owner string, isUser bool) tea.Cmd {
 			}
 
 			if err != nil {
+				slog.Debug("LoadReposCmd: Error fetching repos", "error", err)
 				return ReposLoadedMsg{Owner: owner, Err: err}
 			}
 
+			slog.Debug("LoadReposCmd: Fetched repos", "count", len(repos), "nextPage", resp.NextPage)
 			allRepos = append(allRepos, repos...)
 
 			if resp.NextPage == 0 {
@@ -266,8 +272,8 @@ func (s *GitHubService) LoadIssuesCmd(owner, repoName string) tea.Cmd {
 
 		slog.Debug("LoadIssuesCmd: Successfully loaded issues", "count", len(issues))
 
-		infos := make([]IssueInfo, len(issues))
-		for i, issue := range issues {
+		infos := []IssueInfo{}
+		for _, issue := range issues {
 			// Skip pull requests (they appear in issue list but have PullRequestLinks)
 			if issue.IsPullRequest() {
 				continue
@@ -283,7 +289,7 @@ func (s *GitHubService) LoadIssuesCmd(owner, repoName string) tea.Cmd {
 				author = issue.User.GetLogin()
 			}
 
-			infos[i] = IssueInfo{
+			infos = append(infos, IssueInfo{
 				Number:    issue.GetNumber(),
 				Title:     issue.GetTitle(),
 				State:     issue.GetState(),
@@ -293,7 +299,7 @@ func (s *GitHubService) LoadIssuesCmd(owner, repoName string) tea.Cmd {
 				CreatedAt: issue.GetCreatedAt().Time,
 				UpdatedAt: issue.GetUpdatedAt().Time,
 				Body:      issue.GetBody(),
-			}
+			})
 		}
 
 		return IssuesLoadedMsg{
