@@ -43,6 +43,10 @@ We welcome contributions from the community! To contribute to `tgr`:
 
 Please ensure your code adheres to the project's coding standards and includes appropriate tests.
 
+## Sponsor
+
+If you like this project, please consider sponsoring it: [https://github.com/sponsors/jjournet](https://github.com/sponsors/jjournet)
+
 ## Special thanks
 
 Thank you to [Fernand Galiana](https://github.com/derailed), creator of [k9s](https://github.com/derailed/k9s), the TUI for Kubernetes. I used it daily, and it gave me the idea for `tgr`.
