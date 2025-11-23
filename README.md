@@ -1,6 +1,7 @@
 # tgr
 
 [![CI/CD](https://github.com/jjournet/tgr/actions/workflows/cicd.yaml/badge.svg?branch=main)](https://github.com/jjournet/tgr/actions/workflows/cicd.yaml)
+[:heart: Sponsor](https://github.com/sponsors/jjournet)
 
 ## Disclaimer
 
