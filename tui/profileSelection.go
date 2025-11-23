@@ -2,7 +2,7 @@ package tui
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -38,7 +38,7 @@ func (m *profileSelection) resizeMain(w int, h int) {
 
 // NewProfileSelection creates a new profile selection model
 func NewProfileSelection(ghService *github.GitHubService) (tea.Model, tea.Cmd) {
-	log.Println("NewProfileSelection called")
+	slog.Debug("NewProfileSelection called")
 	m := &profileSelection{
 		ghService: ghService,
 		loading:   true,
@@ -49,7 +49,7 @@ func NewProfileSelection(ghService *github.GitHubService) (tea.Model, tea.Cmd) {
 	m.InitBottom()
 	m.BottomFields = []string{"(q) Quit", "(enter) Select"}
 
-	log.Println("Returning model with LoadUserCmd and LoadOrgsCmd")
+	slog.Debug("Returning model with LoadUserCmd and LoadOrgsCmd")
 	// Return model and commands to load data
 	return m, tea.Batch(
 		ghService.LoadUserCmd(),
@@ -65,7 +65,7 @@ func (m *profileSelection) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case github.UserLoadedMsg:
-		log.Printf("Received UserLoadedMsg: Login=%s, Err=%v", msg.Login, msg.Err)
+		slog.Debug("Received UserLoadedMsg", "Login", msg.Login, "Err", msg.Err)
 		if msg.Err != nil {
 			m.err = msg.Err
 			m.loading = false
@@ -78,7 +78,7 @@ func (m *profileSelection) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case github.OrgsLoadedMsg:
-		log.Printf("Received OrgsLoadedMsg: Orgs count=%d, Err=%v", len(msg.Orgs), msg.Err)
+		slog.Debug("Received OrgsLoadedMsg", "Orgs count", len(msg.Orgs), "Err", msg.Err)
 		if msg.Err != nil {
 			m.err = msg.Err
 			m.loading = false
@@ -125,11 +125,11 @@ func (m *profileSelection) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *profileSelection) checkLoadingComplete() {
 	// Only proceed when both user and orgs are loaded
 	if !m.userLoaded || !m.orgsLoaded {
-		log.Printf("Not ready yet - userLoaded: %v, orgsLoaded: %v", m.userLoaded, m.orgsLoaded)
+		slog.Debug("Not ready yet", "userLoaded", m.userLoaded, "orgsLoaded", m.orgsLoaded)
 		return
 	}
 
-	log.Println("Both user and orgs loaded, building owner list")
+	slog.Debug("Both user and orgs loaded, building owner list")
 
 	// Add organizations and current user to owners list
 	m.owners = make([]github.Owner, len(m.orgs)+1)

@@ -30,4 +30,10 @@ var (
 			Foreground(lipgloss.Color("#77c2f9"))
 
 	HighlightedLineStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#000000")).Background(lipgloss.Color("#77c2f9")).Padding(0, 1)
+
+	FocusedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	BlurredStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	CursorStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	NoStyle      = lipgloss.NewStyle()
+	ErrorStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("#FF0000"))
 )

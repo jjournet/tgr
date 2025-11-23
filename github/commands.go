@@ -2,7 +2,7 @@ package github
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -13,14 +13,14 @@ import (
 // LoadUserCmd returns a command that loads the current user's information
 func (s *GitHubService) LoadUserCmd() tea.Cmd {
 	return func() tea.Msg {
-		log.Println("LoadUserCmd: Starting to fetch user info...")
+		slog.Debug("LoadUserCmd: Starting to fetch user info...")
 		user, _, err := s.client.Users.Get(s.Context(), "")
 		if err != nil {
-			log.Printf("LoadUserCmd: Error fetching user: %v", err)
+			slog.Debug("LoadUserCmd: Error fetching user", "error", err)
 			return UserLoadedMsg{Err: err}
 		}
 
-		log.Printf("LoadUserCmd: Successfully loaded user: %s", user.GetLogin())
+		slog.Debug("LoadUserCmd: Successfully loaded user", "login", user.GetLogin())
 		return UserLoadedMsg{
 			Login: user.GetLogin(),
 			Name:  user.GetName(),
@@ -32,14 +32,14 @@ func (s *GitHubService) LoadUserCmd() tea.Cmd {
 // LoadOrgsCmd returns a command that loads the user's organizations
 func (s *GitHubService) LoadOrgsCmd() tea.Cmd {
 	return func() tea.Msg {
-		log.Println("LoadOrgsCmd: Starting to fetch organizations...")
+		slog.Debug("LoadOrgsCmd: Starting to fetch organizations...")
 		orgs, _, err := s.client.Organizations.List(s.Context(), "", nil)
 		if err != nil {
-			log.Printf("LoadOrgsCmd: Error fetching orgs: %v", err)
+			slog.Debug("LoadOrgsCmd: Error fetching orgs", "error", err)
 			return OrgsLoadedMsg{Err: err}
 		}
 
-		log.Printf("LoadOrgsCmd: Successfully loaded %d organizations", len(orgs))
+		slog.Debug("LoadOrgsCmd: Successfully loaded organizations", "count", len(orgs))
 		owners := make([]Owner, len(orgs))
 		for i, org := range orgs {
 			desc := org.GetDescription()
@@ -249,7 +249,7 @@ func (s *GitHubService) LoadAllRepoRunsCmd(owner, repoName string) tea.Cmd {
 // LoadIssuesCmd returns a command that loads issues for a repository
 func (s *GitHubService) LoadIssuesCmd(owner, repoName string) tea.Cmd {
 	return func() tea.Msg {
-		log.Println("[LoadIssuesCmd] Starting to load issues for", owner, "/", repoName)
+		slog.Debug("LoadIssuesCmd: Starting to load issues", "owner", owner, "repo", repoName)
 
 		issues, _, err := s.client.Issues.ListByRepo(
 			s.Context(),
@@ -260,11 +260,11 @@ func (s *GitHubService) LoadIssuesCmd(owner, repoName string) tea.Cmd {
 			},
 		)
 		if err != nil {
-			log.Println("[LoadIssuesCmd] Error loading issues:", err)
+			slog.Debug("LoadIssuesCmd: Error loading issues", "error", err)
 			return IssuesLoadedMsg{Err: err}
 		}
 
-		log.Println("[LoadIssuesCmd] Successfully loaded", len(issues), "issues")
+		slog.Debug("LoadIssuesCmd: Successfully loaded issues", "count", len(issues))
 
 		infos := make([]IssueInfo, len(issues))
 		for i, issue := range issues {
@@ -306,7 +306,7 @@ func (s *GitHubService) LoadIssuesCmd(owner, repoName string) tea.Cmd {
 // LoadRunDetailCmd returns a command that loads detailed information for a workflow run
 func (s *GitHubService) LoadRunDetailCmd(owner, repoName string, runID int64) tea.Cmd {
 	return func() tea.Msg {
-		log.Println("[LoadRunDetailCmd] Starting to load run detail for run ID:", runID)
+		slog.Debug("LoadRunDetailCmd: Starting to load run detail", "runID", runID)
 
 		run, _, err := s.client.Actions.GetWorkflowRunByID(
 			s.Context(),
@@ -315,11 +315,11 @@ func (s *GitHubService) LoadRunDetailCmd(owner, repoName string, runID int64) te
 			runID,
 		)
 		if err != nil {
-			log.Println("[LoadRunDetailCmd] Error loading run detail:", err)
+			slog.Debug("LoadRunDetailCmd: Error loading run detail", "error", err)
 			return RunDetailLoadedMsg{Err: err}
 		}
 
-		log.Println("[LoadRunDetailCmd] Successfully loaded run detail")
+		slog.Debug("LoadRunDetailCmd: Successfully loaded run detail")
 
 		actor := ""
 		if run.Actor != nil {
@@ -354,7 +354,7 @@ func (s *GitHubService) LoadRunDetailCmd(owner, repoName string, runID int64) te
 // LoadRunJobsCmd returns a command that loads jobs for a workflow run
 func (s *GitHubService) LoadRunJobsCmd(owner, repoName string, runID int64) tea.Cmd {
 	return func() tea.Msg {
-		log.Println("[LoadRunJobsCmd] Starting to load jobs for run ID:", runID)
+		slog.Debug("LoadRunJobsCmd: Starting to load jobs", "runID", runID)
 
 		jobs, _, err := s.client.Actions.ListWorkflowJobs(
 			s.Context(),
@@ -364,11 +364,11 @@ func (s *GitHubService) LoadRunJobsCmd(owner, repoName string, runID int64) tea.
 			nil,
 		)
 		if err != nil {
-			log.Println("[LoadRunJobsCmd] Error loading jobs:", err)
+			slog.Debug("LoadRunJobsCmd: Error loading jobs", "error", err)
 			return RunJobsLoadedMsg{Err: err}
 		}
 
-		log.Println("[LoadRunJobsCmd] Successfully loaded", len(jobs.Jobs), "jobs")
+		slog.Debug("LoadRunJobsCmd: Successfully loaded jobs", "count", len(jobs.Jobs))
 
 		jobInfos := make([]JobInfo, len(jobs.Jobs))
 		for i, job := range jobs.Jobs {
@@ -406,7 +406,7 @@ func (s *GitHubService) LoadRunJobsCmd(owner, repoName string, runID int64) tea.
 // TriggerWorkflowCmd returns a command that triggers a workflow dispatch event
 func (s *GitHubService) TriggerWorkflowCmd(owner, repoName string, workflowID int64, ref string, inputs map[string]interface{}) tea.Cmd {
 	return func() tea.Msg {
-		log.Printf("[TriggerWorkflowCmd] Triggering workflow %d on ref %s", workflowID, ref)
+		slog.Debug("TriggerWorkflowCmd: Triggering workflow", "workflowID", workflowID, "ref", ref)
 
 		event := gh.CreateWorkflowDispatchEventRequest{
 			Ref:    ref,
@@ -422,11 +422,11 @@ func (s *GitHubService) TriggerWorkflowCmd(owner, repoName string, workflowID in
 		)
 
 		if err != nil {
-			log.Println("[TriggerWorkflowCmd] Error triggering workflow:", err)
+			slog.Debug("TriggerWorkflowCmd: Error triggering workflow", "error", err)
 			return WorkflowTriggeredMsg{Success: false, Err: err}
 		}
 
-		log.Println("[TriggerWorkflowCmd] Successfully triggered workflow")
+		slog.Debug("TriggerWorkflowCmd: Successfully triggered workflow")
 		return WorkflowTriggeredMsg{Success: true, Err: nil}
 	}
 }
@@ -434,7 +434,7 @@ func (s *GitHubService) TriggerWorkflowCmd(owner, repoName string, workflowID in
 // LoadWorkflowInputsCmd loads the inputs for a workflow
 func (s *GitHubService) LoadWorkflowInputsCmd(owner, repoName string, workflowPath string) tea.Cmd {
 	return func() tea.Msg {
-		log.Printf("[LoadWorkflowInputsCmd] Loading inputs for %s", workflowPath)
+		slog.Debug("LoadWorkflowInputsCmd: Loading inputs", "path", workflowPath)
 
 		// Get file content
 		fileContent, _, _, err := s.client.Repositories.GetContents(
@@ -445,13 +445,13 @@ func (s *GitHubService) LoadWorkflowInputsCmd(owner, repoName string, workflowPa
 			nil,
 		)
 		if err != nil {
-			log.Printf("[LoadWorkflowInputsCmd] Error fetching file content: %v", err)
+			slog.Debug("LoadWorkflowInputsCmd: Error fetching file content", "error", err)
 			return WorkflowInputsLoadedMsg{Err: err}
 		}
 
 		content, err := fileContent.GetContent()
 		if err != nil {
-			log.Printf("[LoadWorkflowInputsCmd] Error decoding file content: %v", err)
+			slog.Debug("LoadWorkflowInputsCmd: Error decoding file content", "error", err)
 			return WorkflowInputsLoadedMsg{Err: err}
 		}
 
@@ -473,7 +473,7 @@ func (s *GitHubService) LoadWorkflowInputsCmd(owner, repoName string, workflowPa
 		if err := yaml.Unmarshal([]byte(content), &wf); err != nil {
 			// If unmarshal fails, it might be because 'on' is not a map.
 			// In that case, there are no inputs for workflow_dispatch (or it's not enabled).
-			log.Printf("[LoadWorkflowInputsCmd] YAML unmarshal failed (likely no inputs): %v", err)
+			slog.Debug("LoadWorkflowInputsCmd: YAML unmarshal failed (likely no inputs)", "error", err)
 			return WorkflowInputsLoadedMsg{Inputs: []WorkflowInputDefinition{}, Err: nil}
 		}
 

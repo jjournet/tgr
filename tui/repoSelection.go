@@ -2,7 +2,7 @@ package tui
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -39,7 +39,7 @@ func (m *repoSelection) resizeMain(w int, h int) {
 	if m.visibleCommand {
 		cmdHeight = 3
 	}
-	log.Printf("Header: %d, Footer: %d, Command: %d\n", headerHeight, footerHeight, cmdHeight)
+	slog.Debug("Resizing main", "Header", headerHeight, "Footer", footerHeight, "Command", cmdHeight)
 	constants.MainStyle = constants.MainStyle.Width(w - 2).Height(h - headerHeight - footerHeight - 3 - cmdHeight)
 	m.RepoList = m.RepoList.WithPageSize(h - headerHeight - footerHeight - 3 - cmdHeight - 1)
 	constants.CommandStyle = constants.CommandStyle.Width(w - 2).Height(1)
@@ -165,7 +165,7 @@ func (m *repoSelection) handleFilterInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 }
 
 func (m *repoSelection) View() string {
-	log.Printf("View Repo Selection\n")
+	slog.Debug("View Repo Selection")
 
 	if m.err != nil {
 		return fmt.Sprintf("Error: %v\n\nPress 'q' to quit or 'backspace' to go back", m.err)
