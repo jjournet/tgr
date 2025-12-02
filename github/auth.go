@@ -1,6 +1,9 @@
 package github
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/99designs/keyring"
 )
 
@@ -17,8 +20,23 @@ type AuthService struct {
 
 // NewAuthService creates a new authentication service
 func NewAuthService() (*AuthService, error) {
+	configDir, err := os.UserConfigDir()
+	if err != nil {
+		home, _ := os.UserHomeDir()
+		configDir = filepath.Join(home, ".config")
+	}
+
+	keyringDir := filepath.Join(configDir, "tgr", "keyring")
+	if err := os.MkdirAll(keyringDir, 0700); err != nil {
+		return nil, err
+	}
+
 	ring, err := keyring.Open(keyring.Config{
 		ServiceName: serviceName,
+		FileDir:     keyringDir,
+		FilePasswordFunc: func(_ string) (string, error) {
+			return "", nil
+		},
 	})
 	if err != nil {
 		return nil, err
