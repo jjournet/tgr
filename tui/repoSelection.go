@@ -145,6 +145,7 @@ func (m *repoSelection) handleFilterInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.visibleCommand = false
 		m.resizeMain(constants.WindowSize.Width, constants.WindowSize.Height)
 		m.CommandInput.Blur()
+		m.RepoList = m.RepoList.Focused(true)
 
 		if msg.String() == "esc" {
 			m.CommandInput.SetValue("")
