@@ -1,0 +1,94 @@
+name: release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set_version.outputs.SemVer }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v3.1.11
+        with:
+          versionSpec: '5.x'
+      - name: Set version
+        id: set_version
+        uses: gittools/actions/gitversion/execute@v3.1.11
+        with:
+          overrideConfig: |
+            mode=Mainline
+      - name: Tag repository
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag ${{ steps.set_version.outputs.SemVer }} || echo "Tag already exists"
+          git push origin ${{ steps.set_version.outputs.SemVer }} || echo "Tag already pushed"
+      - name: Generate release notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "Previous tag: '$PREV_TAG'"
+          
+          if [ -z "$PREV_TAG" ]; then
+             ISSUES=$(gh issue list --repo ${{ github.repository }} --state closed --limit 1000 --json number,title,url --template '{{range .}}- [#{{.number}}]({{.url}}) {{.title}}{{"\n"}}{{end}}')
+          else
+             PREV_DATE=$(git log -1 --format=%aI $PREV_TAG)
+             echo "Previous release date: $PREV_DATE"
+             ISSUES=$(gh search issues --repo ${{ github.repository }} --type issue --state closed --closed ">$PREV_DATE" --json number,title,url --template '{{range .}}- [#{{.number}}]({{.url}}) {{.title}}{{"\n"}}{{end}}')
+          fi
+          
+          {
+            echo "RELEASE_NOTES<<EOF"
+            echo "## Issues Closed"
+            echo ""
+            if [ -z "$ISSUES" ]; then
+              echo "No issues closed in this release."
+            else
+              echo "$ISSUES"
+            fi
+            echo "EOF"
+          } >> $GITHUB_ENV
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.set_version.outputs.SemVer }}
+        run: |
+          gh release create "$VERSION" -t "$VERSION" -n "$RELEASE_NOTES" --generate-notes
+
+  build_assets:
+    needs: create_release
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.24.x]
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: go build -o tgr${{ matrix.goos == 'windows' && '.exe' || '' }} .
+      - name: Upload to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.create_release.outputs.version }}
+        run: |
+          mv tgr${{ matrix.goos == 'windows' && '.exe' || '' }} tgr-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
+          gh release upload $VERSION tgr-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }} --clobber

@@ -2,12 +2,6 @@ name: cicd
 
 on:
   workflow_dispatch:
-    inputs:
-      create_release:
-        description: 'Create a release'
-        required: false
-        default: false
-        type: boolean
   push:
     branches:
       - main
@@ -57,21 +51,6 @@ jobs:
             mode=Mainline
       - name: Display version
         run: echo "Version is ${{ steps.set_version.outputs.SemVer }}" >> $GITHUB_STEP_SUMMARY
-      - name: Tag repository
-        if: github.ref == 'refs/heads/main'
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git tag ${{ steps.set_version.outputs.SemVer }}
-          git push origin ${{ steps.set_version.outputs.SemVer }}
-      - name: Create release
-        if: github.ref == 'refs/heads/main' && inputs.create_release == true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ steps.set_version.outputs.SemVer }}
-        run: |
-          echo "Creating release $VERSION" >> $GITHUB_STEP_SUMMARY
-          gh release create "$VERSION" -t "$VERSION" -n "TGR version $VERSION" -F $GITHUB_STEP_SUMMARY
   compile:
     name: Build Go binaries
     runs-on: ubuntu-latest
@@ -104,12 +83,4 @@ jobs:
       with:
         name: tgr-${{ matrix.goos }}-${{ matrix.goarch }}
         path: tgr${{ matrix.goos == 'windows' && '.exe' || '' }}
-    - name: Attach artifact to release
-      if: github.ref == 'refs/heads/main' && inputs.create_release == true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        VERSION: ${{ needs.compute_version.outputs.version }}
-      run: |
-        mv tgr${{ matrix.goos == 'windows' && '.exe' || '' }} tgr-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }}
-        gh release upload $VERSION tgr-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.goos == 'windows' && '.exe' || '' }} --clobber
 # test
