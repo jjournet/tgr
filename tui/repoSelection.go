@@ -128,7 +128,9 @@ func (m *repoSelection) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "backspace":
 			return NewProfileSelection(m.ghService)
 		default:
+			slog.Debug("Update: default case", "key", msg.String())
 			var cmd tea.Cmd
+			m.RepoList = m.RepoList.Focused(true)
 			m.RepoList, cmd = m.RepoList.Update(msg)
 			cmds = append(cmds, cmd)
 		}
@@ -147,15 +149,32 @@ func (m *repoSelection) handleFilterInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.CommandInput.Blur()
 		m.RepoList = m.RepoList.Focused(true)
 
+		// Create a new input model to detach the previous one
+		// We need to set the value on it so filtering persists
+		newInput := textinput.New()
+		
 		if msg.String() == "esc" {
 			m.CommandInput.SetValue("")
-			m.RepoList = m.RepoList.WithFilterInputValue("")
 			m.TopFields[2] = fmt.Sprintf("(%d repos)", len(m.repos))
+			// Clear filter
+			newInput.SetValue("")
 		} else {
 			m.TopFields[2] = "Filter: " + m.CommandInput.Value()
+			// Keep filter value
+			newInput.SetValue(m.CommandInput.Value())
 		}
+		
+		// Update the table with the new (unfocused) input model containing the filter value
+		m.RepoList = m.RepoList.WithFilterInput(newInput)
+
 		return m, nil
+	case "up", "down", "pgup", "pgdown":
+		slog.Debug("handleFilterInput: navigation key", "key", msg.String())
+		var cmd tea.Cmd
+		m.RepoList, cmd = m.RepoList.Update(msg)
+		cmds = append(cmds, cmd)
 	default:
+		slog.Debug("handleFilterInput: default key", "key", msg.String())
 		var cmd tea.Cmd
 		m.CommandInput, cmd = m.CommandInput.Update(msg)
 		cmds = append(cmds, cmd)
