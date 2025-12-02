@@ -152,7 +152,7 @@ func (m *repoSelection) handleFilterInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Create a new input model to detach the previous one
 		// We need to set the value on it so filtering persists
 		newInput := textinput.New()
-		
+
 		if msg.String() == "esc" {
 			m.CommandInput.SetValue("")
 			m.TopFields[2] = fmt.Sprintf("(%d repos)", len(m.repos))
@@ -163,7 +163,7 @@ func (m *repoSelection) handleFilterInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			// Keep filter value
 			newInput.SetValue(m.CommandInput.Value())
 		}
-		
+
 		// Update the table with the new (unfocused) input model containing the filter value
 		m.RepoList = m.RepoList.WithFilterInput(newInput)
 
