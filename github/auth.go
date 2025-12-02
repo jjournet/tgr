@@ -32,9 +32,11 @@ func NewAuthService() (*AuthService, error) {
 	}
 
 	ring, err := keyring.Open(keyring.Config{
-		ServiceName:      serviceName,
-		FileDir:          keyringDir,
-		FilePasswordFunc: keyring.TerminalPrompt,
+		ServiceName: serviceName,
+		FileDir:     keyringDir,
+		FilePasswordFunc: func(_ string) (string, error) {
+			return "", nil
+		},
 	})
 	if err != nil {
 		return nil, err
